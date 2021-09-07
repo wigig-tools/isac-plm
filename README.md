@@ -34,7 +34,6 @@ It requires the [MATLAB WLAN toolbox](https://www.mathworks.com/products/wlan.ht
 The MATLAB code is collected in the following folders:
 * Root folder
 	- `edmg-phy-model`: repository folder.
-        - `data`: datasets when required.
         - `example`: example folder.
         - `license`: license folder.
         - `src`: source code folder.
