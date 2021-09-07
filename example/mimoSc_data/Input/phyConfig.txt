@@ -1,0 +1,11 @@
+ParameterName	ParameterValue
+phyMode	SC
+lenPsduByt	4096
+giType	Long
+numSTSVec	2
+mcs	7
+processFlag	1
+smTypeNDP	Hadamard
+smTypeDP	Custom
+symbOffset	0.92
+softCsiFlag	0

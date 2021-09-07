@@ -1,0 +1,10 @@
+ParameterName	ParameterValue
+debugFlag	0
+pktFormatFlag	1
+chanFlag	Rayleigh
+dopplerFlag	0
+noiseFlag	2
+snrMode	EsNo
+snrAntNormFlag	0
+maxNumErrors	1
+maxNumPackets	10

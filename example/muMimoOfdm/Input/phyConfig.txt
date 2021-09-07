@@ -1,0 +1,10 @@
+ParameterName	ParameterValue
+phyMode	OFDM
+lenPsduByt	4096
+giType	Long
+numSTSVec	[2 2 2 2]
+mcs	6 1 16 11
+processFlag	1
+smTypeNDP	Hadamard
+smTypeDP	Custom
+symbOffset	0.95

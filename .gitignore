@@ -1,0 +1,8 @@
+/data/data_ESM/*
+/data/data_NISTQDChannel/*
+/debug/*
+/example/*/Output/results.txt
+/tools/setWsPathStr.m
+/results/*
+/ScenarioTest*/*
+*.asv

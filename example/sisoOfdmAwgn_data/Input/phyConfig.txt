@@ -1,0 +1,7 @@
+ParameterName	ParameterValue
+phyMode	OFDM
+lenPsduByt	4096
+giType	Long
+numSTSVec	1
+mcs	6
+processFlag	0

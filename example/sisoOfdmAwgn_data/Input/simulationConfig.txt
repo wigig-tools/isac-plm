@@ -1,0 +1,10 @@
+ParameterName	ParameterValue
+debugFlag	0
+pktFormatFlag	1
+chanModel	AWGN
+dopplerFlag	0
+snrMode	EsNo
+snrRange	[-2 1]
+snrStep	0.5
+maxNumErrors	10
+maxNumPackets	10

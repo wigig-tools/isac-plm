@@ -1,0 +1,9 @@
+ParameterName	ParameterValue
+phyMode	SC
+lenPsduByt	4096
+giType	Long
+numSTSVec	1
+mcs	6
+processFlag	0
+symbOffset	0.92
+softCsiFlag	0
