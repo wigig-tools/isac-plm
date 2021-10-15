@@ -1,4 +1,4 @@
-﻿# IEEE 802.11ay EDMG Physical Layer Model
+# IEEE 802.11ay EDMG Physical Layer Model
 > Physical layer (PHY) model of IEEE 802.11ay enhanced directional multi-gigabit (EDMG) Wireless local access network (WLAN).
 
 <img src="docs/img/results.jpg" alt="drawing">
@@ -215,18 +215,18 @@ These predefined scenarios are given as examples in `/src/examples/`. Each scena
 
 | Example      | Number of Rx | Streams/rx | Channel Model | Precoder | Equalizer | Processing Flag | Packet 	   |
 | :---         |     :---:    |   :---:    | :---: 		   |:---:     | :---:     | :---:           | :---: 	   |
-| sisoOfdmAwgn_data  | 1			  | 	1	   | AWGN 	   | - 		  | MMSE 	  | 0				|	Data  	   |
-| sisoSc_data  | 1			  | 	1	   | Rayleigh 	   | - 		  | MMSE 	  | 0				|	Data  	   |
-| sisoOfdm_data| 1            | 	1	   | Rayleigh 	   | - 		  | MMSE 	  | 0				|   Data 	   |
+| sisoOfdmAwgn_data  | 1			  | 	1	   | AWGN 	   | - 		  | MMSE 	  | 0				|	PSDU  	   |
+| sisoSc_data  | 1			  | 	1	   | Rayleigh 	   | - 		  | MMSE 	  | 0				|	PSDU  	   |
+| sisoOfdm_data| 1            | 	1	   | Rayleigh 	   | - 		  | MMSE 	  | 0				|   PSDU 	   |
 | sisoSc	   | 1			  | 	1	   | Rayleigh 	   | - 		  | MMSE 	  | 0				|	PPDU  	   |
 | sisoOfdm     | 1            | 	1	   | Rayleigh 	   | - 		  | MMSE 	  | 0				|   PPDU 	   |
-| mimoSc_data  | 1			  | 	2	   | Rayleigh 	   | ZF (Freq flat)	  | MMSE 	  | 1				|	Data  	   |
-| mimoOfdm_data| 1            | 	2	   | Rayleigh 	   | ZF (Freq sel) 		  | MMSE 	  | 1				|   Data 	   |
-| mimoSc	   | 1			  | 	2	   | Rayleigh 	   | ZF (Freq flat) 		  | MMSE 	  | 1				|	PPDU  	   |
-| mimoOfdm     | 1            | 	2	   | Rayleigh 	   | ZF (Freq sel) 		  | MMSE 	  | 1			|   PPDU 	   |
-| muMimoSc_data   | 2            | 	2	   | Rayleigh 	   | ZF (Time domain) 		  | MMSE 	  | 5				|   Data 	   |
-| muMimoOfdm_data   | 2            | 	2	   | Rayleigh 	   | ZF (Freq sel) 		  | MMSE 	  | 1				|   Data 	   |
-| muMimoOfdm   | 2            | 	2	   | Rayleigh 	   | ZF (Freq sel) 		  | MMSE 	  | 1				|   PPDU 	   |
+| mimoSc_data  | 1			  | 	2	   | Rayleigh 	   | RZF (Freq flat)	  | MMSE 	  | 1				|	PSDU  	   |
+| mimoOfdm_data| 1            | 	2	   | Rayleigh 	   | RZF (Freq sel) 		  | MMSE 	  | 1				|   PSDU 	   |
+| mimoSc	   | 1			  | 	2	   | Rayleigh 	   | RZF (Freq flat) 		  | MMSE 	  | 1				|	PPDU  	   |
+| mimoOfdm     | 1            | 	2	   | Rayleigh 	   | RZF (Freq sel) 		  | MMSE 	  | 1			|   PPDU 	   |
+| muMimoSc_data   | 2            | 	2	   | Rayleigh 	   | ZF (Time domain) 		  | MMSE 	  | 5				|   PSDU 	   |
+| muMimoOfdm_data   | 2            | 	2	   | Rayleigh 	   | RZF (Freq sel) 		  | MMSE 	  | 1				|   PSDU 	   |
+| muMimoOfdm   | 2            | 	2	   | Rayleigh 	   | RZF (Freq sel) 		  | MMSE 	  | 1				|   PPDU 	   |
 
 
 
@@ -267,7 +267,7 @@ Feedbacks and additions are more than welcomed! You can directly contact the [au
 
 [![NIST picture](https://github.com/usnistgov.png?size=100)](https://github.com/usnistgov)
 
-The EDMG-PHY-Model software has been developed at NIST by Jiayi Zhang, [Steve Blandino](https://www.linkedin.com/in/steve-blandino) (steve.blandino@nist.gov), [Neeraj Varshney](https://www.nist.gov/people/neeraj-varshney) (neeraj.varshney@nist.gov) and [Jian Wang](https://www.nist.gov/people/jian-wang) (jian.wang@nist.gov).
+The EDMG-PHY-Model software has been developed at NIST by Jiayi Zhang(jiayi.zhang@ieee.org), [Steve Blandino](https://www.linkedin.com/in/steve-blandino) (steve.blandino@nist.gov), [Neeraj Varshney](https://www.nist.gov/people/neeraj-varshney) (neeraj.varshney@nist.gov) and [Jian Wang](https://www.nist.gov/people/jian-wang) (jian.wang@nist.gov).
 
 
 

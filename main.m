@@ -12,10 +12,10 @@ rootFolderPath = pwd;
 fprintf('-------- NIST/CTL 802.11ay PHY --------\n');
 fprintf('Current root folder:\n\t%s\n',rootFolderPath);
 [path,folderName] = fileparts(rootFolderPath);
-if strcmp(folderName, 'edmg-phy-model')
+if strcmp(folderName, 'edmg-physical-layer-model')
     fprintf('Start to run.\n');
 else
-    error('The root folder should be ''edmg-phy-model''');
+    error('The root folder should be ''edmg-physical-layer-model''');
 end
 
 addpath(genpath(fullfile(rootFolderPath,'src')));
