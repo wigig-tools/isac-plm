@@ -13,6 +13,7 @@
 * [Installation](#installation)
 * [Requirements](#requirements)
 * [How to Run](#how-to-run)
+    * [Documentation](#documentation)
 * [Examples Provided](#examples-provided)
 * [Published Work](#published-work)
 * [Contributing](#contributing)
@@ -40,6 +41,9 @@ It requires the [MATLAB WLAN toolbox](https://www.mathworks.com/products/wlan.ht
 * `main.m` is configured to run the `muMimoOfdm_data` scenario by default.
 * `mainIsac.m` is configured to run the `pointTarget` scenario by default.
 * Run `main.m` or `mainIsac.m`
+
+### Documentation
+More details about ISAC-PLM can be found in the documentation ([docs/isac-plm.pdf](docs/isac-plm.pdf)).
 
 ## Examples Provided
 
