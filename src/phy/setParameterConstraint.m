@@ -9,7 +9,8 @@ function [simuParams, phyParams,chanCfg,nodeParams] = setParameterConstraint(sim
 assert(ismember(simuParams.debugFlag,[0,1,2]), 'debugFlag should be 0,1 or 2.');
 assert(ismember(simuParams.pktFormatFlag,[0,1]), 'pktFormatFlag should be 0 or 1.');
 assert(ismember(simuParams.dopplerFlag,[0,1]), 'dopplerFlag should be 0 or 1.');
-assert(ismember(chanCfg.chanFlag,[0,1,2,3,4]),'chanFlag should be 0,1,2,3 or 4.');
+assert(~isempty(simuParams.chanFlag),'Wrong Channel Model')
+assert(ismember(simuParams.chanFlag,[0,1,2,3,4]),'chanFlag should be 0,1,2,3 or 4.');
 assert(ismember(simuParams.mimoFlag,[-1,0,1,2]),'mimoFlag should be -1,0,1 or 2.');
 assert(ismember(phyParams.processFlag,[0:6]),'processFlag should be 0~6.');
 assert(ismember(phyParams.svdFlag,[0,1,2,3]),'svdFlag should be 0,1,2 or 3.');
@@ -25,9 +26,9 @@ assert(phyParams.symbOffset>=0 && phyParams.symbOffset<=1,'symbOffset should be 
 %% Set the remaining variables for the simulation.
 phyParams.numSTSTot = sum(phyParams.numSTSVec);   % Num of total spatial streams for all active users
 phyParams.numTxAnt = sum(phyParams.numSTSVec);       % Num of transmit antennas at BaseStation / Access Point
-assert(phyParams.numUsers>=1,'numUsers should not be negative.');
-assert(phyParams.numTxAnt>=1,'numTxAnt should not be negative.');
-assert(phyParams.numSTSTot>=1,'numSTSTot should not be negative.');
+assert(ismember(phyParams.numUsers,1:8), 'numUsers should be 1 to 8.');
+assert(ismember(phyParams.numTxAnt,1:8), 'numTxAnt should be  1 to 8.');
+assert(ismember(phyParams.numSTSTot,1:8),'numSTSTot should be 1 to 8.');
 
 chanCfg.realizationSetIndex = 0;
 
@@ -69,9 +70,7 @@ else
             error('chanCfg.rxPowThresType should be Inactivated, Static or Dynamic.');
         end
     end
-    
-    assert(ismember(phyParams.numUsers,[1:8]),'numUsers should be 1 to 8.');
-    
+        
     if strcmp(phyParams.phyMode,'OFDM')
         if phyParams.equiChFlag == 0
             phyParams.equaAlgoFlag = checkInput(phyParams.equaAlgoFlag, 0, 'Set expected equaAlgoFlag value:');
@@ -159,13 +158,13 @@ else
 end
 
 if strcmp(phyParams.phyMode,'OFDM')
-    assert(ismember(phyParams.processFlag,[0:4]),'processFlag should be 0~4.');
-    assert(ismember(phyParams.precAlgoFlag,[0:4]),'precAlgoFlag should be 0~4.');
+    assert(ismember(phyParams.processFlag,0:4),'processFlag should be 0~4.');
+    assert(ismember(phyParams.precAlgoFlag,0:4),'precAlgoFlag should be 0~4.');
 else
     % SC
     if phyParams.numUsers == 1
-        assert(ismember(phyParams.processFlag,[0:5]),'processFlag should be 0~5.');
-        assert(ismember(phyParams.precAlgoFlag,[0:5]),'precAlgoFlag should be 0~5.');
+        assert(ismember(phyParams.processFlag,0:5),'processFlag should be 0~5.');
+        assert(ismember(phyParams.precAlgoFlag,0:5),'precAlgoFlag should be 0~5.');
     else
         assert(phyParams.processFlag==5,'processFlag should be 5.');
         assert(phyParams.precAlgoFlag==5,'precAlgoFlag should be 5.');

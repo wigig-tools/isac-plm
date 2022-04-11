@@ -82,7 +82,7 @@ legacyChanEstTd = [];
 if cfgEDMG.NumTransmitAntennas == 1
     legacyPreamble = rxSig(pktStartOffset+fieldIndices.DMGSTF(1):...
         pktStartOffset+fieldIndices.EDMGHeaderA(2),:);
-    [symbolTimingOffset,legacyChanEstFd,legacyChanEstTd, ~] = ...
+    [symbolTimingOffset,legacyChanEstFd,legacyChanEstTd] = ...
         edmgTimingAndChannelEstimate(legacyPreamble, fs, ...
         'margin', syncMargin);
 end
@@ -104,6 +104,7 @@ if packetError
     warning('EDMG sync error')
     syncStart = nan;
     varargout{1} = [];
+    varargout{2} = [];
     return
 end
 

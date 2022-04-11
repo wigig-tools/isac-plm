@@ -1,6 +1,7 @@
 % EDMG-PHY-MODEL Link-Level Simulator
 %
-%   2019~2021 NIST/CTL Jiayi Zhang, Steve Blandino, Jian Wang
+%   2019~2021 NIST/CTL Jiayi Zhang, Steve Blandino, Neeraj Varshney, 
+%   Jian Wang
 
 %   This file is available under the terms of the NIST License.
 
@@ -12,10 +13,10 @@ rootFolderPath = pwd;
 fprintf('-------- NIST/CTL 802.11ay PHY --------\n');
 fprintf('Current root folder:\n\t%s\n',rootFolderPath);
 [path,folderName] = fileparts(rootFolderPath);
-if strcmp(folderName, 'edmg-physical-layer-model')
+if strcmp(folderName, 'isac-plm')
     fprintf('Start to run.\n');
 else
-    error('The root folder should be ''edmg-physical-layer-model''');
+    error('The root folder should be ''isac-plm''');
 end
 
 addpath(genpath(fullfile(rootFolderPath,'src')));

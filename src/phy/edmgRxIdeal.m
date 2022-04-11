@@ -57,7 +57,7 @@ startOffsetDp = [];
 cfOffset = [];
 
 %% Data Processing at MIMO Receiver
-[rxDpPsdu,detSymbBlks,eqSymbGrid,rxDataGrid,rxDataBlks] = edmgRxMIMOData(rxDpSigSeq,phyParams.cfgEDMG,cfgSim, ...
+[rxDpPsdu,detSymbBlks,eqSymbGrid,rxDataGrid,rxDataBlks] = edmgRxMIMOData(rxDpSigSeq,phyParams,simulationParams, ...
     estCIRDp,estCFRDp,estNoiseVarDp,startOffsetDp,cfOffset,phyParams.precScaleFactor,phyParams.svdChan);
 
 varargout{1} = eqSymbGrid;

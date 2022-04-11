@@ -1,5 +1,5 @@
 function simuParams = setSimulationPrintInfo(simuParams,phyParams,chanCfg)
-%setSimulationPrintInfo Set formatted simulation labels for printing simulation information.
+%SETSIMULATIONPRINTINFO Set formatted simulation labels for printing simulation information.
 % 
 %   2019~2021 NIST/CTL Jiayi Zhang
 
@@ -35,7 +35,7 @@ if ~simuParams.isTest
     fprintf('%s\n',simuParams.pmFolderStr);
     fprintf(simuParams.fileID,'## %s\r\n',simuParams.pmNameStr);
     fprintf(simuParams.fileID,'## %s\r\n',simuParams.pmFolderStr);
-    if chanCfg.chanFlag == 4
+    if simuParams.chanFlag == 3
         fprintf('QD Channel Data Path:\t%s\n',chanCfg.MatPath);
         fprintf('QD Channel Data File:\t%s\n',chanCfg.MatName);
         fprintf(simuParams.fileID,'## QD Channel Data Path:\t%s\r\n',chanCfg.MatPath);
@@ -44,7 +44,7 @@ if ~simuParams.isTest
     
     % Print in commmand line
     fprintf('numMaxParWorks: %d,\tdebugFlag: %d,\tpktFormatFlag(T): %d,\tchanFlag(C): %d,\tmimoFlag(M): %d\n', ...
-        simuParams.numMaxParWorks,simuParams.debugFlag,simuParams.pktFormatFlag,chanCfg.chanFlag,simuParams.mimoFlag);
+        simuParams.numMaxParWorks,simuParams.debugFlag,simuParams.pktFormatFlag,simuParams.chanFlag,simuParams.mimoFlag);
     
     fprintf('pktFormat: %s,\tphyMode: %s,\tgiType: %s,\tmimoFlag: %s,\tmimoCfg: %s,\tsmTypeNDP: %s,\tsmTypeDP: %s\n', ...
         simuParams.pktFormatStr,phyParams.phyMode,simuParams.giTypeStr,simuParams.mimoFlagStr,simuParams.mimoCfgStr, ...
@@ -55,11 +55,11 @@ if ~simuParams.isTest
     fprintf('chanCfg: %s,\ttdlCfg: %s\n',simuParams.chanCfgStr,simuParams.tdlCfgStr);
     fprintf('paaCfg: %s,\tabfCfg: %s\n',simuParams.paaCfgStr,simuParams.abfCfgStr);
     
-    if chanCfg.chanFlag == 1
+    if simuParams.chanFlag == 1
         fprintf('chanCfg.maxMimoArrivalDelay: %d\n',chanCfg.maxMimoArrivalDelay);
     end
     
-    if chanCfg.chanFlag == 4
+    if simuParams.chanFlag == 3
         fprintf('chanCfg.rxPowThresType: %s\t',chanCfg.rxPowThresType);
         fprintf('chanCfg.rxPowThresdB: %s\n',num2str(chanCfg.rxPowThresdB));
         fprintf('chanCfg.realizationIndexType: %s\t',chanCfg.realizationIndexType);
@@ -73,7 +73,7 @@ if ~simuParams.isTest
         end
     end
     
-    fprintf('simuParams.numRunRealizationSets: %d\n',simuParams.numRunRealizationSets);
+    fprintf('simuParams.numRunRealizationSets: %d\n',chanCfg.numRunRealizationSets);
     
     fprintf('snrMode: %s,\tsnrAntNorm: %s\n',simuParams.snrMode,simuParams.snrAntNormStr);
     fprintf('numTxAnt(X): %d,\tnumUsers(U): %d,\tnumSTSVec(S): %s\n',phyParams.numTxAnt,simuParams.numUsers,simuParams.stsCfgStr);
@@ -90,7 +90,7 @@ if ~simuParams.isTest
     
     % Print in results file
     fprintf(simuParams.fileID,'## numMaxParWorks: %d,\tdebugFlag: %d,\tpktFormatFlag(T): %d,\tchanFlag(C): %d,\tmimoFlag(M): %d\r\n', ...
-        simuParams.numMaxParWorks,simuParams.debugFlag,simuParams.pktFormatFlag,chanCfg.chanFlag,simuParams.mimoFlag);
+        simuParams.numMaxParWorks,simuParams.debugFlag,simuParams.pktFormatFlag,simuParams.chanFlag,simuParams.mimoFlag);
     
     fprintf(simuParams.fileID,'## pktFormat: %s,\tphyMode: %s,\tgiType: %s,\tmimoFlag: %s,\tmimoCfg: %s,\tsmTypeNDP: %s,\tsmTypeDP: %s\r\n', ...
         simuParams.pktFormatStr,phyParams.phyMode,simuParams.giTypeStr,simuParams.mimoFlagStr,simuParams.mimoCfgStr, ...
@@ -101,11 +101,11 @@ if ~simuParams.isTest
     fprintf(simuParams.fileID,'## chanCfg: %s,\ttdlCfg: %s\r\n',simuParams.chanCfgStr,simuParams.tdlCfgStr);
     fprintf(simuParams.fileID,'## paaCfg: %s,\tabfCfg: %s\r\n',simuParams.paaCfgStr,simuParams.abfCfgStr);
     
-    if chanCfg.chanFlag == 1
+    if simuParams.chanFlag == 1
         fprintf(simuParams.fileID,'## chanCfg.maxMimoArrivalDelay: %d\r\n',chanCfg.maxMimoArrivalDelay);
     end
     
-    if chanCfg.chanFlag == 4
+    if simuParams.chanFlag == 3
         fprintf(simuParams.fileID,'## chanCfg.rxPowThresType: %s\r\t',chanCfg.rxPowThresType);
         fprintf(simuParams.fileID,'## chanCfg.rxPowThresdB: %s\r\n',num2str(chanCfg.rxPowThresdB));
         fprintf(simuParams.fileID,'## chanCfg.realizationIndexType: %s\r\t',chanCfg.realizationIndexType);
@@ -119,7 +119,7 @@ if ~simuParams.isTest
         end
     end
     
-    fprintf(simuParams.fileID,'## simuParams.numRunRealizationSets: %d\r\n',simuParams.numRunRealizationSets);
+    fprintf(simuParams.fileID,'## simuParams.numRunRealizationSets: %d\r\n',chanCfg.numRunRealizationSets);
     
     fprintf(simuParams.fileID,'## snrMode: %s,\tsnrAntNor: %s\r\n', ...
         simuParams.snrMode, simuParams.snrAntNormStr);

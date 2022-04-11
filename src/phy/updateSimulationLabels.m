@@ -1,16 +1,17 @@
 function simuParams = updateSimulationLabels(simuParams,phyParams,chanCfg)
-%updateSimulationLabels
-%   This script file should be included in mainfile, in order to update formatted simulation labels in string type variables.
+%%UPDATESIMULATIONLABELS Simulation labels
+%   
+%   S = UPDATESIMULATIONLABELS(SIM,PHY,CH) update the simulation struct SIM 
+%   with labels in string type variables, describing params in SIM, in PHY 
+%   the PHY config struct and in CH the channel config struct
 % 
 %   2019~2021 NIST/CTL Jiayi Zhang
 
 %   This file is available under the terms of the NIST License.
 
-%#codegen
-
 simuParams.realizationSetCfgStr = '';
 
-if chanCfg.chanFlag == 4
+if simuParams.chanFlag == 3
         simuParams.realizationSetCfgStr = strcat('Set',num2str(chanCfg.realizationSetIndicator));
 end
 
@@ -24,11 +25,16 @@ simuParams.dbfCfgStr = sprintf('P%dV%dA%dQ%dE%dW%d', ...
 simuParams.phyCfgStr = [simuParams.snrMode,'_',simuParams.stsCfgStr,'_',simuParams.dbfCfgStr,'_',simuParams.mcsCfgStr];
 
 % Config Result File and Folders
-if chanCfg.chanFlag == 4
+if simuParams.chanFlag == 3
     simuParams.pmNameStr = [simuParams.phyCfgStr,'_',simuParams.realizationSetCfgStr];
 else
     simuParams.pmNameStr = simuParams.phyCfgStr;
 end
 
+% Set simulation print information
+simuParams = setSimulationPrintInfo(simuParams,phyParams,chanCfg);
+
+  
 end
 % End of file
+

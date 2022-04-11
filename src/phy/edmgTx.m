@@ -1,4 +1,4 @@
-function [txSigSeq,txPSDU] = edmgTx(cfgEDMG,cfgSim)
+function [txSigSeq,txPSDU] = edmgTx(cfgEDMG,simParams)
 %edmgTx EDMG PPDU/PSDU transmiiter waveform generator
 %   This function generates the transmiiter waveforms for either the EDMG PHY protocol data unit (PPDU) format or the
 %   EDMG PHY service data unit (PSDU) format, i.e. PPDU data-field only format. Specifically, the EDMG PPDU format 
@@ -20,7 +20,7 @@ function [txSigSeq,txPSDU] = edmgTx(cfgEDMG,cfgSim)
 validateattributes(cfgEDMG,{'nist.edmgConfig'},{'scalar'},mfilename,'EDMG format configuration object');
 
 narginchk(2,6);
-pktFormatFlag = cfgSim.pktFormatFlag;
+pktFormatFlag = simParams.pktFormatFlag;
 assert(ismember(pktFormatFlag, [0,1]), 'pktFormatFlag should be either 0 or 1.')
 numBitsPerPkt = cfgEDMG.PSDULength*8;
 numUsers = cfgEDMG.NumUsers;
@@ -35,8 +35,8 @@ if pktFormatFlag == 0
     %         txSigSeq = nist.edmgWaveformGenerator(txPSDU,cfgEDMG);
     %     else
     % DP includes a non-empty PSDU
-    delay = cfgSim.delay;
-    zp = cfgSim.zeroPadding;
+    delay = simParams.delay;
+    zp = simParams.zeroPadding;
     txPSDU = cell(numUsers,1);
     for iUser = 1:numUsers
         % Create the transmitted PSDU per user

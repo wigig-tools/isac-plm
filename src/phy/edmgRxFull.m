@@ -1,4 +1,4 @@
-function [syncError, rxDpPsdu,detSymbBlks,rxDataGrid,rxDataBlks, varargout] = edmgRxFull(rxDpSigSeq, phyParams, cfgSim)
+function [syncError, rxDpPsdu,detSymbBlks,rxDataGrid,rxDataBlks, varargout] = edmgRxFull(rxDpSigSeq, phyParams, simParams)
 %edmgRxIdeal EDMG PPDU recevier waveform generator interface
 %   This function provides the interface of recovering the receiver waveforms for the EDMG PPDU format
 %   with impfect channel estimation and synchronization error.
@@ -39,6 +39,11 @@ rxDataGrid = [];
 rxDataBlks = [];
 varargout{1} = [];
 
+if ~iscell(rxDpSigSeq) && isvector(rxDpSigSeq) 
+    rxDpSigSeqCell{1} = rxDpSigSeq;
+    rxDpSigSeq = rxDpSigSeqCell;
+end
+
 %% Per User processing
 % Data Field with STF/CTF
 pktErrDp = cell(phyParams.numUsers,1);
@@ -48,7 +53,7 @@ estCIRDp = cell(phyParams.numUsers,1);
 estCFRDp = cell(phyParams.numUsers,1);
 cfOffset = cell(phyParams.numUsers,1);
 
-syncMargin = phyParams.giLength-round(cfgSim.symbOffset*phyParams.giLength);
+syncMargin = phyParams.giLength-round(phyParams.symbOffset*phyParams.giLength);
 
 for iUser = 1:phyParams.numUsers
 
@@ -57,13 +62,13 @@ for iUser = 1:phyParams.numUsers
     
     if pktErrDp{iUser} || (startOffsetDp{iUser}+fieldIndices.EDMGData(2) > size(rxDpSigSeq{iUser},1))
         syncError = true;
+        varargout{1} = [];
+        varargout{2} = [];
         return; 
     end
     estNoiseVarDp{iUser} = 1./preambleDp.edmg.snrEst;   % EDMG Test
-    % estNoiseVarDp{iUser} = preambleDp.legacy.stfVarEst;       % DMG/SISO
     if strcmpi(phyParams.phyMode, 'OFDM')
         estCFRDp{iUser} = reformatSUMIMOChannel(preambleDp.edmg.chanEst,'FD');
-        estCIRDp{iUser} = [];
         cfOffset{iUser} = preambleDp.edmg.CFO;
     else
         % SC
@@ -77,14 +82,16 @@ if any(cell2mat(pktErrDp)) || ...
         any(cell2mat(startOffsetDp)+double(fieldIndices.EDMGData(2)) > ...
         cell2mat(cellfun(@(x) size(x,1), rxDpSigSeq, 'UniformOutput', false)))
     syncError = true;
+    varargout{1} = [];
+    varargout{2} = [];
     return;
 end
 
-
 %% Data Processing at MIMO Receiver
-[rxDpPsdu,detSymbBlks,eqSymbGrid,rxDataGrid,rxDataBlks] = edmgRxMIMOData(rxDpSigSeq,phyParams.cfgEDMG,cfgSim, ...
+[rxDpPsdu,detSymbBlks,eqSymbGrid,rxDataGrid,rxDataBlks] = edmgRxMIMOData(rxDpSigSeq,phyParams,simParams, ...
     estCIRDp,estCFRDp,estNoiseVarDp,startOffsetDp,cfOffset,phyParams.precScaleFactor,phyParams.svdChan);
 
 varargout{1} = eqSymbGrid;
+varargout{2} = estCIRDp;
 
 end

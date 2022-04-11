@@ -1,5 +1,5 @@
 function [rxMUPSDU,detDataSymbs,eqSymbGrid,rxDataGrid,rxDataBlks,fdEqualizer] = edmgRxMIMOData( ...
-    rxSigSeq,cfgEDMG,cfgSim,tdMimoChan,fdMimoChan,noiseVarLin,varargin)
+    rxSigSeq,phyParams,simulationParams,tdMimoChan,fdMimoChan,noiseVarLin,varargin)
 %edmgRxMIMOData EDMG PPDU/PSDU recevier waveform generator
 %   This function recovers the receiver waveforms for either the EDMG PPDU format or the
 %   EDMG PSDU (data-field only) format. The EDMG PPDU format supports the non-data packet (NDP) or data packet
@@ -42,6 +42,7 @@ function [rxMUPSDU,detDataSymbs,eqSymbGrid,rxDataGrid,rxDataBlks,fdEqualizer] = 
 
 %#codegen
 
+cfgEDMG = phyParams.cfgEDMG;
 validateattributes(cfgEDMG,{'nist.edmgConfig'},{'scalar'},mfilename,'EDMG format configuration object');
 
 narginchk(6,10);
@@ -54,44 +55,32 @@ spatialMapType = cfgEDMG.SpatialMappingType;
 spatialMapMat = cfgEDMG.SpatialMappingMatrix;
 
 numSTSTot = sum(numSTSVec);
-pktFormatFlag = cfgSim.pktFormatFlag;
-chanFlag = cfgSim.chanFlag;
-dopplerFlag = cfgSim.dopplerFlag;
-mimoFlag = cfgSim.mimoFlag;
-processFlag = cfgSim.processFlag;
-svdFlag = cfgSim.svdFlag;
-precAlgoFlag = cfgSim.precAlgoFlag;
-equiChFlag = cfgSim.equiChFlag;
-equaAlgoFlag = cfgSim.equaAlgoFlag;
-equaAlgoStr = cfgSim.equaAlgoStr;
-softCsiFlag = cfgSim.softCsiFlag;
-ldpcDecMethod = cfgSim.ldpcDecMethod;
+pktFormatFlag = simulationParams.pktFormatFlag;
+chanFlag = simulationParams.chanFlag;
+mimoFlag = simulationParams.mimoFlag;
+svdFlag = phyParams.svdFlag;
+equiChFlag = phyParams.equiChFlag;
+equaAlgoFlag = phyParams.equaAlgoFlag;
+equaAlgoStr = simulationParams.equaAlgoStr;
+softCsiFlag = phyParams.softCsiFlag;
+ldpcDecMethod = phyParams.ldpcDecMethod;
 
 assert(ismember(pktFormatFlag, [0,1]), 'pktFormatFlag should be either 0 or 1.')
 assert(ismember(mimoFlag, [0,1,2]), 'pktFormatFlag should be either 0 or 1.')
 
 if pktFormatFlag == 0
     % PPDU
-    scaleFactor = 1;
-    svdChan = [];
     if nargin == 7
         startOffset = varargin{1};
         CFO = [];
-    elseif nargin == 8
+    elseif nargin> 7
         startOffset = varargin{1};
         CFO = varargin{2};
-    elseif nargin == 9
-        startOffset = varargin{1};
-        CFO = varargin{2};
-        scaleFactor = varargin{3};
-    elseif nargin == 10
-        startOffset = varargin{1};
-        CFO = varargin{2};
-        scaleFactor = varargin{3};
-        svdChan = varargin{4};
     else
         error('nargin should be >= 7 in PPDU format.');
     end
+    scaleFactor = phyParams.precScaleFactor;
+    svdChan = phyParams.svdChan;
 else
     % PSDU pktFormatFlag = 1
     scaleFactor = 1;
@@ -116,7 +105,7 @@ else
     else
         error('nargin should be >= 6 in PSDU format.');
     end
-    
+
 end
 
 if pktFormatFlag && chanFlag ~= 0
@@ -207,10 +196,10 @@ for iUser = 1:numUsers
     end
 
     %% Channel estimation
-    if chanFlag == 0   % AWGN
-        % Set channel gains to 1 as AWGN channel
-        dataFdMimoChan = complex(ones(numDataSubc,numSTSTot,numSTSVec(iUser)));
-    else
+     if chanFlag == 0   % AWGN
+         % Set channel gains to 1 as AWGN channel
+         dataFdMimoChan = complex(ones(numDataSubc,numSTSTot,numSTSVec(iUser)));
+     else
         % Obtain FD estimated channel on data subcarriers
         if strcmp(phyMode,'OFDM')
             dataFdMimoChan = getFDEquivalentMIMODataChannel(iUser,tdMimoChan{iUser},fdMimoChan{iUser},equiChFlag,cfgEDMG,eqMapObj);
@@ -249,7 +238,7 @@ for iUser = 1:numUsers
             % Compensate for CFO
             delay = double(fieldIndices.EDMGCEF(2)-fieldIndices.EDMGCEF(1)+1);
             rxDataSeq = compensateFrequencyOffset(rxDataSeq, CFO{iUser}, delay);
-            symbOffset = cfgSim.symbOffset;
+            symbOffset = phyParams.symbOffset;
         else
             % SC - Extract data field (ignore first GI)
             % Extract data field from received signal sequences
@@ -263,7 +252,7 @@ for iUser = 1:numUsers
         if strcmp(phyMode,'OFDM')
             % OFDM demodulate
             rxDataSeq = rxSigSeq{iUser};
-            symbOffset = cfgSim.symbOffset;
+            symbOffset = phyParams.symbOffset;
         else
             % SC
             rxDataSeq = rxSigSeq{iUser};
@@ -282,7 +271,7 @@ for iUser = 1:numUsers
         if pktFormatFlag == 0
             rxDataBlks{iUser} = reshape(rxDataSeq,[numDataSubc,numScBlksMax,numSTSVec(iUser)]);
         else
-            symbOffset = cfgSim.symbOffset;
+            symbOffset = phyParams.symbOffset;
             sampleOffset = numGI-round(symbOffset*numGI);
             % Shift FFT window and remove equivalent of 1 GI (part at the
             % beginning, part at the end

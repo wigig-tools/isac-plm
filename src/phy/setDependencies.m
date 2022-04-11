@@ -1,4 +1,4 @@
-function  [simuParams,phyParams,channelParams] = setDependencies(simuParams,phyParams,channelParams)
+function  [simuParams,phyParams,channelParams, nodeParams] = setDependencies(simuParams,phyParams,channelParams, nodeParams)
 %scriptDependenciesFun return parameters dependent on the configuration parameters
 
 %   2019~2021 NIST/CTL Jiayi Zhang, Steve Blandino
@@ -26,9 +26,7 @@ simuParams.numUsers = phyParams.numUsers;
 %% Setup Controllor for System, Channel
 
  % 0,1,2,3,4 respectevely
-simuParams.chanFlag =  find(ismember({'AWGN', 'Rayleigh', 'MatlabTGay', 'Intel', 'NIST'}, simuParams.chanModel ))-1;
-channelParams.chanFlag = simuParams.chanFlag;
-channelParams.chanModel = simuParams.chanModel;
+simuParams.chanFlag =  find(ismember({'AWGN', 'Rayleigh', 'MatlabTGay', 'NIST', 'sensNIST'}, channelParams.chanModel ))-1;
 
 if phyParams.numUsers>1
     simuParams.mimoFlag = 2;           % mimo flag         =0: SISO, =1: SU-MIMO, =2: MU-MIMO
@@ -40,13 +38,15 @@ else
     end
 end
 
-simuParams.runFoldStr = 'edmg-phy-model';
+simuParams.runFoldStr = 'edmg-physical-layer-model';
 simuParams.dataFoldStr = 'data';
 simuParams.resultFoldStr = 'results';
 if strcmp(simuParams.metricStr,'ER')
     simuParams.resultSubFoldStr = 'LLS_results';
 elseif strcmp(simuParams.metricStr,'SE')
     simuParams.resultSubFoldStr = 'LLA_results';
+elseif strcmp(simuParams.metricStr,'ISAC')
+    simuParams.resultSubFoldStr = 'ISAC_results';    
 else
     error('metricStr should be either ER or SE.');
 end
@@ -55,7 +55,10 @@ end
 phyParams = setTxRxProcessParams(phyParams);
 
 if simuParams.pktFormatFlag == 0
-    phyParams.equiChFlag = 1;
+    if phyParams.equiChFlag ~= 1
+        phyParams.equiChFlag = 1;
+     %   warning('equiChFlag set to 1');
+    end
 end
 
 %% Configure BER vs SNR Simulation 
@@ -100,7 +103,7 @@ else
 end
 if isrow(phyParams.mcsMU)
     if simuParams.debugFlag == 0
-        simuParams.snrRanges = { simuParams.snrRange(1):simuParams.snrStep:simuParams.snrRange(2) };
+        simuParams.snrRanges = { simuParams.snrRange(1):simuParams.snrStep:simuParams.snrRange(end) };
     else
         simuParams.snrRanges = { simuParams.snrRange };
     end
@@ -108,6 +111,16 @@ else
     error('phyParams.mcsMU should not be a row vector.');
 end
 
+%% Output folder
+if strcmp(simuParams.metricStr,'ER')
+    simuParams.resultSubFoldStr = 'LLS_results';
+elseif strcmp(simuParams.metricStr,'SE')
+    simuParams.resultSubFoldStr = 'LLA_results';
+elseif strcmp(simuParams.metricStr,'ISAC')
+    simuParams.resultSubFoldStr = 'ISAC_results';
+else
+    error('metricStr should be either ER or SE.');
+end
 
 %% Plot Configuration
 simuParams.plotProperty.Mark = '.*osd^v><ph*osd^v><ph*osd^v><ph*osd^v><ph';
@@ -118,6 +131,8 @@ simuParams.plotProperty.Line = {'-'; '-'; ':'; '-.';};
 simuParams.dtStr = datestr(now,30); % 'yyyymmddTHHMMSS'
 
 
-%% FE Impairment
-% scriptSetAnalogFE
+[simuParams, phyParams, channelParams, nodeParams] = setParameterConstraint(simuParams,phyParams,channelParams, nodeParams); 
+
+% Set System Object Initialization
+phyParams = setPhySystemInit(phyParams);
    

@@ -40,7 +40,7 @@ elseif phyParams.equaAlgoFlag == 3
     simuParams.equaAlgoStr = 'MF';
 end
 
-if chanCfg.chanFlag > 0
+if simuParams.chanFlag > 0 && simuParams.chanFlag < 4
     if strcmp(chanCfg.tdlType,'Impulse')
         simuParams.tdlTypeStr = 'Impu';
     elseif strcmp(chanCfg.tdlType,'Sinc')
@@ -55,31 +55,15 @@ end
 simuParams.tdlCfgStr = '';
 simuParams.paaCfgStr = '';
 simuParams.abfCfgStr = '';
-if chanCfg.chanFlag == 0
+if simuParams.chanFlag == 0
     simuParams.chanCfgStr = strcat(chanCfg.MdlStr,'-',chanCfg.EnvStr,'-',simuParams.doppFlagStr);
-elseif chanCfg.chanFlag == 1
+elseif simuParams.chanFlag == 1
     simuParams.chanCfgStr = strcat(chanCfg.MdlStr,'-',chanCfg.EnvStr,'-',simuParams.doppFlagStr);
     simuParams.tdlCfgStr = strcat(chanCfg.tdlType,'-',chanCfg.pdpMethodStr,'-D',num2str(chanCfg.maxMimoArrivalDelay),'-L',num2str(chanCfg.numTaps));
-elseif chanCfg.chanFlag == 2
+elseif simuParams.chanFlag == 2
     simuParams.chanCfgStr = strcat(chanCfg.MdlStr,'-',chanCfg.EnvStr,'-',simuParams.doppFlagStr);
     simuParams.tdlCfgStr = chanCfg.tdlType;
-elseif chanCfg.chanFlag == 3
-    chanCfg.numTaps = [];
-    if chanCfg.apSp == 0
-        chanCfg.subScenaStr = 'STA';  % Manually modify cr_ch_cfg.m
-    elseif chanCfg.apSp == 1
-        chanCfg.subScenaStr = 'AP';
-    end
-    if chanCfg.pLos == 0
-        chanCfg.pLosStr = 'NLOS';
-    elseif chanCfg.pLos == 1
-        chanCfg.pLosStr = 'LOS';
-    end
-    chanCfg.antTypeStr = strcat(num2str(chanCfg.txAntType),num2str(chanCfg.rxAntType));
-    chanCfg.hpbwStr = strcat(num2str(chanCfg.txHpbw),num2str(chanCfg.rxHpbw));
-    simuParams.chanCfgStr = strcat(chanCfg.MdlStr,'-',chanCfg.EnvStr,'-',chanCfg.subScenaStr,'-',chanCfg.pLosStr);
-    simuParams.paaCfgStr = strcat(chanCfg.antTypeStr,'-',chanCfg.hpbwStr);
-elseif chanCfg.chanFlag == 4
+elseif simuParams.chanFlag == 3
     simuParams.chanCfgStr = strcat(chanCfg.MdlStr,'-',chanCfg.EnvStr,'-',simuParams.doppFlagStr,'-',chanCfg.RrayType,'-',chanCfg.ReflecOrder);
     if isempty(chanCfg.numTaps)
         simuParams.tdlCfgStr = strcat('TDL',simuParams.tdlTypeStr,num2str(chanCfg.tdlMimoNorFlag));
@@ -88,12 +72,14 @@ elseif chanCfg.chanFlag == 4
     end
     simuParams.paaCfgStr = strcat('PAA',chanCfg.paaCfg.arrayDimension);
     simuParams.abfCfgStr = strcat(chanCfg.paaCfg.beamSelection,'-',chanCfg.paaCfg.beamReduction);
+elseif simuParams.chanFlag == 4
+    simuParams.chanCfgStr = 'sensNIST';
 else
     error('chanFlag should be 0~4.');
 end
 
 simuParams.simuCfgStr = strcat('T',num2str(simuParams.pktFormatFlag),'C',num2str(simuParams.chanFlag));
-if chanCfg.chanFlag == 4
+if simuParams.chanFlag == 3
     simuParams.mimoCfgStr = vec2str(chanCfg.nistChan.graphTxRxOriginal);
 else
     simuParams.mimoCfgStr = vec2str(phyParams.numSTSVec);

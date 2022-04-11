@@ -1,0 +1,7 @@
+ParameterName	ParameterValue
+debugFlag	0
+pktFormatFlag	0
+dopplerFlag	0
+snrMode	EsNo
+maxNumErrors	1
+maxNumPackets	10

@@ -1,4 +1,4 @@
-function params =  configPhy(scenarioPath)
+function params =  configPhy(scenarioPath, varargin)
 %CONFIGPHY loads the 802.11ay PHY parameters 
 %   CONFIGPHY(FOLDERPATH) loads the 802.11ay simulation parameters 
 %   from phyConfig.txt relative to the scenarios in FOLDERPATH
@@ -55,6 +55,15 @@ function params =  configPhy(scenarioPath)
 
 %#codegen
 
+p = inputParser;
+
+defaultMode = false;
+checkInputValidity = @(x) islogical(x);
+addOptional(p,'isac',defaultMode,checkInputValidity)
+parse(p,varargin{:})
+isIsac = p.Results.isac;
+
+
 %% Load params
 cfgPath = fullfile(scenarioPath, 'Input/phyConfig.txt');
 paramsList = readtable(cfgPath,'Delimiter','\t', 'Format','%s %s' );
@@ -62,7 +71,11 @@ paramsCell = (table2cell(paramsList))';
 params = cell2struct(paramsCell(2,:), paramsCell(1,:), 2);
 
 %% Check validity
-params = fieldToNum(params, 'phyMode', {'SC', 'OFDM'}, 'defaultValue', 'OFDM');
+if isIsac
+    params = fieldToNum(params, 'phyMode', {'SC', 'OFDM'}, 'defaultValue', 'SC');
+else
+    params = fieldToNum(params, 'phyMode', {'SC', 'OFDM'}, 'defaultValue', 'OFDM');
+end
 params = fieldToNum(params, 'lenPsduByt', [0 pow2(16)], 'step', eps, 'defaultValue', pow2(12));
 params = fieldToNum(params, 'giType', {'Short', 'Normal', 'Long'}, 'defaultValue', 'Short');
 params = fieldToNum(params, 'numSTSVec', [1 8], 'step', 1, 'defaultValue', 1);
@@ -77,7 +90,12 @@ params = fieldToNum(params, 'analogBeamforming', {'maxAllUserCapacity', 'maxMinA
 params = fieldToNum(params, 'dynamicBeamNumber', [-1 20],'step', eps, 'defaultValue', 0);
 params = fieldToNum(params, 'processFlag', [0 5], 'step', 1, 'defaultValue', 0);
 params = fieldToNum(params, 'symbOffset', [0 1], 'step', eps, 'defaultValue', 0.75);
-params = fieldToNum(params, 'softCsiFlag', [0 1], 'step', 1, 'defaultValue', 1);
+if isIsac
+    params = fieldToNum(params, 'softCsiFlag', [0 1], 'step', 1, 'defaultValue', 0);
+else
+    params = fieldToNum(params, 'softCsiFlag', [0 1], 'step', 1, 'defaultValue', 1);
+end
 params = fieldToNum(params, 'ldpcDecMethod', {'norm-min-sum'}, 'defaultValue', 'norm-min-sum');
+
 end
 

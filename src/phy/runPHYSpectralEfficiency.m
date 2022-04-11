@@ -37,7 +37,7 @@ parse(p, varargin{:});
 testOutput  = p.Results.testOutput;
 isTest = ~isempty(testOutput);
 
-scenarioPath  = fullfile('example', example);
+scenarioPath  = fullfile('examples', example);
 if isTest
     scenarioPathOutput = fullfile(testOutput, 'Output');
 else
@@ -51,7 +51,7 @@ end
 %% Config
 metricStr = 'SE';
 
-[simuParams, phyParams,channelParams, chanData] = configScenario(scenarioPath,metricStr);
+[simuParams, phyParams,channelParams, chanData] = configScenario(scenarioPath,'metricStr', metricStr);
 simuParams.isTest = isTest;
 
 %% Configure PHY Parameters
@@ -61,7 +61,7 @@ simuParams.maxNumErrors = 0;
 simuParams.maxNumPackets = 0;
     
 %% Location loop
-for setIdx = 1:simuParams.numRunRealizationSets
+for setIdx = 1:channelParams.numRunRealizationSets
     
     % Update MIMO Config with Beam Reduction for NIST-Q-D Channel Model
     if strcmp(channelParams.chanModel,'NIST')
@@ -132,11 +132,11 @@ for setIdx = 1:simuParams.numRunRealizationSets
         for iRlzn = 1:numRlzn
 
             %% Multi-User CSI Initilization
-            if paraChan.chanFlag > 0
+            if paraSimu.chanFlag > 0
                 % Get channel doppler samples
                 numSamp = getChannelDopplerSamples(fieldIndices, paraSimu.dopplerFlag, paraSimu.zeroPadding, paraSimu.delay);
                 % Get NIST QD TGay TDL channel model
-                if paraChan.chanFlag == 4
+                if paraSimu.chanFlag == 3
                     % Get indices of location and realization from NIST Q-D channel realizations
                     [iLoc,iPacket] = getQDTDLChannelRealizationIndex(paraChan,iRlzn,numRlzn);
                     instChanData = struct;
@@ -150,7 +150,7 @@ for setIdx = 1:simuParams.numRunRealizationSets
                 end
                 % Get CIR and CFR from various channel model
                 [tdMimoChan,fdMimoChan] = getMUMIMOChannelResponse(paraChan.chanModel,numSamp,paraPhy.fftLength,paraPhy.cfgEDMG,paraChan,ayChan);
-            elseif paraChan.chanFlag == 0
+            elseif paraSimu.chanFlag == 0
                 tdMimoChan = [];
                 fdMimoChan = [];
             else
@@ -170,7 +170,7 @@ for setIdx = 1:simuParams.numRunRealizationSets
                     spatialMapMat = [];
                     svdChan = [];
 
-                    if paraChan.chanFlag > 0
+                    if paraSimu.chanFlag > 0
                         [pktErrNdp,  estCIRNdp, estCFRNdp, estNoiseVarNdp] = getEstimatedCSIT(rxNdpSigSeq, paraPhy, cfgSim);
 
                         if any(cell2mat(pktErrNdp))
@@ -317,8 +317,7 @@ end % End of idxLocation
 
 outputFiles =dir(simuParams.resultPathStr);
 outputFiles(1:2) = [];
-for of = 1:length(outputFiles)
+of = 2;
     copyfile(fullfile(outputFiles(of).folder,outputFiles(of).name), ...
-        fullfile(scenarioPathOutput, outputFiles(of).name))
-end
+        fullfile(scenarioPath,'Output', 'isac-plm-ws.mat'))
 %% End of file

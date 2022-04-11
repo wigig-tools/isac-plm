@@ -41,32 +41,14 @@ function runPHYErrorRateDataRate(scenario, varargin)
 % formed as either the non-data packet (NDP) or the data packet (DP). 
 
 %% Varargin processing
-p = inputParser;
-addParameter(p,'testOutput', []);
-parse(p, varargin{:});
-testOutput  = p.Results.testOutput;
-isTest = ~isempty(testOutput); %Used for internal test
-
-scenarioPath  = fullfile('example', scenario);
-if isTest
-    scenarioPathOutput = fullfile(testOutput, 'Output');
-else
-    scenarioPathOutput = fullfile(scenarioPath, 'Output');
-end
-
-if ~isfolder(scenarioPathOutput)
-    mkdir(scenarioPathOutput);
-end
+[isTest,scenarioPath, outputPath] = varArgInitProcess(scenario, inputParser, varargin);
 
 %% Config
-metricStr = 'ER';
-
-[simuParams, phyParams,channelParams, chanData] = configScenario(scenarioPath,metricStr);
-simuParams.isTest = isTest;
+[simuParams, phyParams,channelParams, chanData] = configScenario(scenarioPath, 'isTest', isTest);
 
 %% Location loop
 % Used with NIST-Q-D Channel Model
-for setIdx = 1:simuParams.numRunRealizationSets
+for setIdx = 1:channelParams.numRunRealizationSets
     
     % Update MIMO Config with Beam Reduction for NIST-Q-D Channel Model
     if strcmp(channelParams.chanModel,'NIST')
@@ -75,10 +57,10 @@ for setIdx = 1:simuParams.numRunRealizationSets
     end
     
     % Update Simulation Labels
-    simuParams = updateSimulationLabels(simuParams,phyParams,channelParams);
+   simuParams = updateSimulationLabels(simuParams,phyParams,channelParams);
     
     % Set simulation print information
-    simuParams = setSimulationPrintInfo(simuParams,phyParams,channelParams);
+     simuParams = setSimulationPrintInfo(simuParams,phyParams,channelParams);
     
     % Set and Update cfgSim cfgNDP and cfgEDMG
     cfgSim = setPhySystemConfig(simuParams,phyParams,channelParams);
@@ -136,7 +118,7 @@ for setIdx = 1:simuParams.numRunRealizationSets
             stream = RandStream('combRecursive','Seed',0);
             stream.Substream = iSNR;
             RandStream.setGlobalStream(stream);
-            
+
             % Use local struct per SNR point
             paraSimu = simuParams;
             paraPhy = phyParams;
@@ -167,12 +149,12 @@ for setIdx = 1:simuParams.numRunRealizationSets
             while mean(numPacketErrors)<=paraSimu.maxNumErrors && numPkt(iSNR)<=paraSimu.maxNumPackets
 
                 %% Generate SU/MU-MIMO TDL Channel
-                if paraChan.chanFlag > 0 && paraChan.chanFlag <= 4
+                if paraSimu.chanFlag > 0 && paraSimu.chanFlag <= 4
                     % Get channel doppler samples
                     numSamp = getChannelDopplerSamples(fieldIndices, paraSimu.dopplerFlag, paraSimu.zeroPadding, paraSimu.delay);
                     
                     % Get NIST QD TGay TDL channel model
-                    if paraChan.chanFlag == 4
+                    if paraSimu.chanFlag == 3
                         % Get indices of location and realization from NIST Q-D channel realizations
                         [iSet,iPacket] = getQDTDLChannelRealizationIndex(paraChan,numPkt(iSNR),paraSimu.maxNumPackets);
                         instChanData = struct;
@@ -186,7 +168,7 @@ for setIdx = 1:simuParams.numRunRealizationSets
                     end
                     % Get CIR and CFR from various channel model
                     [tdMimoChan,fdMimoChan] = getMUMIMOChannelResponse(paraChan.chanModel,numSamp,paraPhy.fftLength,paraPhy.cfgEDMG,paraChan,ayChan);
-                elseif paraChan.chanFlag == 0
+                elseif paraSimu.chanFlag == 0
                     tdMimoChan = [];
                     fdMimoChan = [];
                 else 
@@ -207,7 +189,7 @@ for setIdx = 1:simuParams.numRunRealizationSets
                         spatialMapMat = [];
                         svdChan = [];
                         
-                        if paraChan.chanFlag > 0
+                        if paraSimu.chanFlag > 0
                             [pktErrNdp,  estCIRNdp, estCFRNdp, estNoiseVarNdp] = getEstimatedCSIT(rxNdpSigSeq, paraPhy, cfgSim);
                             
                             if any(cell2mat(pktErrNdp))
@@ -257,7 +239,7 @@ for setIdx = 1:simuParams.numRunRealizationSets
                 [txDpSigSeq,txDpPsdu] = edmgTx(paraPhy.cfgEDMG,cfgSim);
 
                 %% Pass multi-path fading channel
-                if paraChan.chanFlag == 0
+                if paraSimu.chanFlag == 0
                     fadeDpSigSeq{1}  = txDpSigSeq;
                 else
                     if paraSimu.dopplerFlag == 1
@@ -403,7 +385,7 @@ for setIdx = 1:simuParams.numRunRealizationSets
                 end
             end
         end
- %       writematrix(results.evmAvgUser{1}, fullfile(scenarioPathOutput, 'results.txt'));
+        writematrix(results.evmAvgUser{1}, fullfile(outputPath, 'testResult.txt'));
     end     % End of MCS loop
     
     %% Plot Bit Error Rate vs SNR Results
@@ -416,11 +398,34 @@ for setIdx = 1:simuParams.numRunRealizationSets
     
 end % End of idxLocation
 
-outputFiles =dir(simuParams.resultPathStr);
-outputFiles(1:2) = [];
-for of = 1:length(outputFiles)
-    copyfile(fullfile(outputFiles(of).folder,outputFiles(of).name), ...
-        fullfile(scenarioPathOutput, outputFiles(of).name))
+if ~simuParams.isTest
+    outputFiles =dir(simuParams.resultPathStr);
+    outputFiles(1:2) = [];
+    for of = 1:length(outputFiles)
+        copyfile(fullfile(outputFiles(of).folder,outputFiles(of).name), ...
+            fullfile(outputPath, outputFiles(of).name))
+    end
+end
 end
 
+function [isTest,scenarioPath,scenarioPathOutput]= varArgInitProcess(example, p, vin)
+addParameter(p,'testOutput', []);
+parse(p, vin{:});
+testOutput  = p.Results.testOutput;
+isTest = ~isempty(testOutput);
+
+scenarioPath  = fullfile('examples', example);
+if ~isfolder(scenarioPath)
+    error('Scenario not defined')
+end
+if isTest
+    scenarioPathOutput = fullfile(testOutput, 'Output');
+else
+    scenarioPathOutput = fullfile(scenarioPath, 'Output');
+end
+
+if ~isfolder(scenarioPathOutput)
+    mkdir(scenarioPathOutput);
+end
+end
 % End of file
