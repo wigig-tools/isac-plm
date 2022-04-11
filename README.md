@@ -13,9 +13,7 @@
 * [Installation](#installation)
 * [Requirements](#requirements)
 * [How to Run](#how-to-run)
-* [Folder Structure](#folder-structure)
-* [Code Structure](#code-structure)
-* [Scenario Definition](#scenario-definition)
+* [Examples Provided](#examples-provided)
 * [Published Work](#published-work)
 * [Contributing](#contributing)
 * [Authors](#authors)
@@ -32,7 +30,7 @@
 ## Installation
 The software does not require any installation procedure: simply download or clone the repository to your local folders.
 
-### Requirements
+## Requirements
 The codebase is written in MATLAB. It is currently being tested on MATLAB R2021b.
 
 It requires the [MATLAB WLAN toolbox](https://www.mathworks.com/products/wlan.html).
@@ -43,7 +41,7 @@ It requires the [MATLAB WLAN toolbox](https://www.mathworks.com/products/wlan.ht
 * `mainIsac.m` is configured to run the `pointTarget` scenario by default.
 * Run `main.m` or `mainIsac.m`
 
-## Example Provided
+## Examples Provided
 
 The following Table describes the predefined examples scenarios and the main configuration parameters. 
 These predefined scenarios are given as examples in `/src/examples/`. Each scenario contains a configuration input folder.
