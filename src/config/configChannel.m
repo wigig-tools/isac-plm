@@ -1,33 +1,9 @@
-function params =  configChannel(scenarioPath, chanModel)
-%CONFIGCHANNEL loads the channel parameters 
-%   CONFIGCHANNEL(FOLDERPATH, FILENAME) loads the channel parameters 
-%   from FILENAMEConfig.txt relative to the scenarios in FOLDERPATH
-%   and it checks if the loaded parameters are in the expected range.
-%   FILENAME is specified as 'AWGN','Rayleigh','NIST','Intel',
-%   'MatlabTgay'.
+function params =  configChannel(scenarioPath)
+%CONFIGCHANNEL loads the channel parameters
+%   CONFIGCHANNEL(SCENARIOPATH) loads the channel parameters
+%   from SCENARIOPATH/Input/channelConfig.txt and it checks if the loaded 
+%   parameters are in the expected range.
 %
-%   P = CONFIGCHANNEL(FOLDERPATH, 'Rayleigh') returns the parameter 
-%   structure P.
-%   P fields:
-%       numTaps: Number of taps specified as a positive integer. (Default
-%       value = 10)
-%       maxMimoArrivalDelay: Sample offset in the CIR (Default value = 0)
-%       pdpMethodStr: Power delay profile specified as 'PS', 'Equ' or
-%       'Exp'.
-%       tdlType: Channel interpolation method specified as 'Impulse' or
-%       'Sinc'.
-%
-%   P = CONFIGCHANNEL(FOLDERPATH, 'NIST') returns the parameter structure
-%   P.
-%   P fields:
-%       environmentFileName: channel model environment specified as 'LR'
-%       living room, 'OAH' for open access hotspot or 'SC' for street
-%       canyon
-%       totalNumberOfReflections: defines the reflection order, specified
-%       as a positive integer
-%       tdlType: Channel interpolation method specified as 'Impulse' or
-%       'Sinc'.
-%       rRayType: Generate random rays specified as: DeteR
 %
 %   See also CONFIGSIMULATION, CONFIGPHY
 
@@ -35,25 +11,22 @@ function params =  configChannel(scenarioPath, chanModel)
 
 %   This file is available under the terms of the NIST License.
 
-%#codegen
-
 %% Load params
-if ~strcmp(chanModel, 'AWGN')
-	try
-		cfgPath = fullfile(scenarioPath, ['Input/channel',chanModel ,'Config.txt']);
-		paramsList = readtable(cfgPath,'Delimiter','\t', 'Format','%s %s' );
-		paramsCell = (table2cell(paramsList))';
-		params = cell2struct(paramsCell(2,:), paramsCell(1,:), 2);
-	catch
-		warning('Default %s channel', chanModel)
-		params = [];
-	end
+cfgPath = fullfile(scenarioPath, 'Input/channelConfig.txt');
+
+try
+    paramsList = readtable(cfgPath,'Delimiter','\t', 'Format','%s %s' );
+catch
+    error('Channel not defined')
 end
 
-%% 
-switch chanModel
+paramsCell = (table2cell(paramsList))';
+params = cell2struct(paramsCell(2,:), paramsCell(1,:), 2);
+
+%%
+switch params.chanModel
     case 'AWGN'
-        params =[];
+        
     case 'Rayleigh'
         params = fieldToNum(params, 'numTaps', [1 192], 'step', eps,  'defaultValue',10);
         params = fieldToNum(params, 'maxMimoArrivalDelay', [0 192], 'step', eps , 'defaultValue',0);
@@ -89,14 +62,12 @@ switch chanModel
         params = fieldToNum(params, 'realizationSetIndexVec', [1 100], 'step',1, 'defaultValue', [1:20]);
         params = fieldToNum(params, 'dataSetSizeStr', [], 'defaultValue','20X100');
 
-    case 'Intel'
-        
     case 'MatlabTGay'
-		error('MatlabTGay channel not supported')
+        error('MatlabTGay channel not supported')
         params = fieldToNum(params, 'environmentFileName', {'LHL-SU-SISO', 'OAH-SU-SISO', 'LHL-SU-SISO', 'OAH-SU-SISO' ...
-          'LHL-SU-MIMO1x1SS', 'LHL-SU-MIMO1x1DD', 'OAH-SU-MIMO1x1DD', ...
-          'SCH-SU-MIMO1x1DD', 'SCH-SU-MIMO2x2SS',  'SCH-SU-MIMO2x2DD', ...
-          'IndoorMIMO2x2SS',  'IndoorMIMO2x2DD',  'SCH-SU-MIMO2x2DD-HBF'},  'defaultValue','LHL-SU-SISO');
+            'LHL-SU-MIMO1x1SS', 'LHL-SU-MIMO1x1DD', 'OAH-SU-MIMO1x1DD', ...
+            'SCH-SU-MIMO1x1DD', 'SCH-SU-MIMO2x2SS',  'SCH-SU-MIMO2x2DD', ...
+            'IndoorMIMO2x2SS',  'IndoorMIMO2x2DD',  'SCH-SU-MIMO2x2DD-HBF'},  'defaultValue','LHL-SU-SISO');
         params = fieldToNum(params, 'showEnvironment', [0,1], 'defaultValue', 0);
         params = fieldToNum(params, 'tdlType', {'Impulse', 'Sinc'},'defaultValue','Impulse');
         params = fieldToNum(params, 'tdlMimoNorFlag', [0,1], 'defaultValue', 1);
@@ -108,7 +79,32 @@ switch chanModel
         end
         params = fieldToNum(params, 'numTaps', [1 128], 'defaultValue', []);
 
+    case 'sensNIST'
+        params.runQd = any(cellfun(@(x) strcmp(x, 'qdSrcFolder'),  fieldnames(params)));
+        if params.runQd
+            params = fieldToNum(params, 'environmentFileName', {'Box.xml','LectureRoom.xml'}, 'defaultValue', 'LectureRoom.xml');
+            params = fieldToNum(params, 'generalizedScenario', [0 1], 'defaultValue', 0);
+            params = fieldToNum(params, 'indoorSwitch', [0 1], 'defaultValue', 	1);
+            if isfield(params,'referencePoint')
+                params.referencePoint = str2num(params.referencePoint); %#ok<ST2NM>
+            else
+                params.referencePoint = [0,0,0];
+            end
+            params = fieldToNum(params, 'selectPlanesByDist', [0 1], 'defaultValue', 0);
+            params = fieldToNum(params, 'switchQDGenerator', [0 1], 'defaultValue', 0);
+            params = fieldToNum(params, 'switchRandomization',[0 1], 'defaultValue', 0);
+            params = fieldToNum(params, 'totalNumberOfReflections', 0:2, 'defaultValue', 1);
+            params = fieldToNum(params, 'totalTimeDuration', [0 inf],'step', eps,'defaultValue',128.28);
+            params = fieldToNum(params, 'switchSaveVisualizerFiles' , 0:1, 'defaultValue',1);
+            params = fieldToNum(params, 'qdFilesFloatPrecision', [1:6],'defaultValue', 6);
+            params = fieldToNum(params, 'jsonOutput', 0:1,'defaultValue', 1);
+            params = fieldToNum(params, 'switchQDModel', {'nistMeasurements', 'tgayMeasurements'},'defaultValue', 'nistMeasurements');
+            params = fieldToNum(params, 'outputFormat', {'txt', 'json', 'both'},'defaultValue', 'json');
+        end
+        params = fieldToNum(params, 'numTaps', [1 192], 'step', eps,  'defaultValue',128);
+
+    otherwise
+        error('Channel model not defined')
 end
-params.chanModel = chanModel;
 
 end

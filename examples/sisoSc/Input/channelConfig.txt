@@ -1,0 +1,6 @@
+ParameterName	ParameterValue
+tdlType	Impulse
+numTaps	50
+maxMimoArrivalDelay	0
+pdpMethodStr	Exp
+chanModel	Rayleigh

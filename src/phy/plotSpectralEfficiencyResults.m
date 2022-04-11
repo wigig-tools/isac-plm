@@ -1,4 +1,4 @@
-function [figData,titleStr] = plotSpectralEfficiencyResults(simuParams,phyParams,results,resultsType,numSTSMax,varargin)
+function [figData,titleStr] = plotSpectralEfficiencyResults(simuParams,phyParams,channelParams, results,resultsType,numSTSMax,varargin)
 %plotSpectralEfficiencyResults Plot spectral efficiency performance
 %   Generalized tool of plotting the sum, average and individual spectral efficiency (SE) vs signal-to-noise ratio (SNR)
 %
@@ -25,7 +25,7 @@ titleStrLine1 = strcat('EDMG-',simuParams.pktFormatStr,',',phyParams.phyMode,'-P
     simuParams.giTypeStr,',',simuParams.mimoCfgStr,',',simuParams.dbfCfgStr,',',simuParams.mcsCfgStr);
 
 setIdxStr = '';
-if strcmp(simuParams.chanModel,'NIST')
+if strcmp(channelParams.chanModel,'NIST')
     setIdx = varargin{1};
     titleStrLine2 = strcat(simuParams.chanCfgStr,',',simuParams.tdlCfgStr,',',simuParams.paaCfgStr,',', ...
         simuParams.abfCfgStr,',',simuParams.realizationSetCfgStr);

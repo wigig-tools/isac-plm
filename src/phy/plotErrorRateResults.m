@@ -1,4 +1,4 @@
-function [figData,titleStr] = plotErrorRateResults(simuParams,phyParams,results,resultsType,numSTSMax,varargin)
+function [figData,titleStr] = plotErrorRateResults(simuParams,phyParams,channelParams,results,resultsType,numSTSMax,varargin)
 %plotErrorRateResults Plot bit error and packet error performance
 %   Generalized tool of plotting the bit error ratio (BER) and packet error ratio (PER) vs signal-to-noise ratio (SNR)
 %
@@ -26,7 +26,7 @@ titleStrLine1 = strcat('EDMG-',simuParams.pktFormatStr,',',phyParams.phyMode,'-P
     simuParams.giTypeStr,',',simuParams.mimoCfgStr,',',simuParams.dbfCfgStr,',',simuParams.mcsCfgStr);
 
 setIdxStr = '';
-switch simuParams.chanModel
+switch channelParams.chanModel
     case 'AWGN'
         titleStrLine2 = strcat(simuParams.chanCfgStr);
     case 'Rayleigh'
@@ -41,7 +41,7 @@ switch simuParams.chanModel
             simuParams.abfCfgStr,',',simuParams.realizationSetCfgStr);
         setIdxStr = sprintf('Set#%d',setIdx);
     otherwise
-        titleStrLine2 = varargin{1};
+        titleStrLine2 = [];
 end
 titleStr = strcat({titleStrLine1;titleStrLine2});
 

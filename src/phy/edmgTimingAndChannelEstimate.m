@@ -1,4 +1,4 @@
-function [startOffset,cfrEst,cirEst, varargout] = edmgTimingAndChannelEstimate(preamble,fs, varargin)
+function [startOffset,cfrEst,cirEst] = edmgTimingAndChannelEstimate(preamble,fs, varargin)
 %edmgTimingAndChannelEstimate EDMG single carrier symbol timing and channel estimation for OFDM and SC modes
 %
 %   [STARTOFFSET,CFREST,CIREST,VARARGOUT] = edmgTimingAndChannelEstimate(PREAMBLE,FS,VARARGIN) returns
@@ -24,10 +24,9 @@ p = inputParser;
 addParameter(p, 'margin', 0)
 parse(p, varargin{:});
 margin = p.Results.margin;
-varargout{1}=[];
 
 if fs == 2.64e9
-    [startOffset,cfrEst,cirEst, varargout{1}] = edmgOFDMTimingAndChannelEstimate(preamble, 'margin', margin);
+    [startOffset,cfrEst,cirEst] = edmgOFDMTimingAndChannelEstimate(preamble, 'margin', margin);
 elseif fs == 1.76e9
     [startOffset,cfrEst,cirEst] = nist.edmgSCTimingAndChannelEstimate(preamble);
 else

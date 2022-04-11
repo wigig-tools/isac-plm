@@ -1,4 +1,4 @@
-function [channelParams,varargout] = setChannelModelParams(channelParams, varargin)
+function [channelParams,varargout] = setChannelModelParams(channelParams, sensParams, varargin)
 %setChannelModelParams Channel Model Configuration
 %   Set different configurations for channel models and their environments.
 
@@ -11,7 +11,7 @@ function [channelParams,varargout] = setChannelModelParams(channelParams, vararg
 p = inputParser;
 channelParams.tgayChannel = [];
 channelParams.nistChan = [];
-numRunRealizationSets = 1;
+channelParams.numRunRealizationSets = 1;
 chanData = [];
 
 switch channelParams.chanModel
@@ -63,21 +63,6 @@ switch channelParams.chanModel
         end
         channelParams.tgayChannel = tgayChannel;
     
-    %% Intel 11ad channel model
-    case 'Intel'
-        msgStr = 'The feature of using Intel TGad 60GHz channel model requires external code package from Intel.\n';
-        error(msgStr);
-        channelParams.MdlStr = 'IntelTGad';
-        channelParams.EnvStr = 'CR';
-        channelParams.numTaps = [] ; % no restriction on the TDL length
-        channelParams.sampleRate = fs*1e-9;   % 1.76; % 2.64; GHz
-        channelParams.apSp = 1;      % subscenario: 0 - STA-STA subscenario, 1 - STA-AP subscenario
-        channelParams.pLos = 1;       % LOS (Line-of-Sight) parameter: 0 - NLOS scenario, 1 - LOS scenario
-        channelParams.paaCfg.txAntType = 1;     % TX antenna type, permitted values: 0 - isotropic radiator, 1 - basic steerable directional antenna
-        channelParams.paaCfg.rxAntType = 1;     % RX antenna type, permitted values: 0 - isotropic radiator, 1 - basic steerable directional antenna
-        channelParams.paaCfg.txHpbw = 30;        % TX antenna beamwidth
-        channelParams.paaCfg.rxHpbw = 30;        % RX antenna beamwidth
-
     %% NIST QD Channel configuration
     case 'NIST'
         msgStr = 'The feature of using NIST 60GHz QD channel model requires additional datasets from NIST.\n';
@@ -262,12 +247,43 @@ switch channelParams.chanModel
             numRunRealizationSets = numUseRealizationSets;
         end
         assert(numRunRealizationSets>0,'numRunRealizationSets should be > 0.');
-        
+    case 'sensNIST'
+        addRequired(p,'phyParams');
+        addRequired(p,'simuParams');
+        addRequired(p,'nodeParams');
+        parse(p, varargin{:});
+        phyParams  = varargin{1};
+        simParams = varargin{2};
+        nodeParams  = varargin{3}; %#ok<NASGU> 
+
+        %% Phase Antenna Array
+        paaInfo = paaInit('Nodes', phyParams.numUsers+1, 'NumPaa', ones(1, phyParams.numUsers+1));
+
+        %% User mobility
+        userMobility = userMobilityInit(phyParams.numUsers+1,simParams.nTimeSamp);
+
+        %% Config Channel
+        channelInfo = channelDependentParams(simParams,paaInfo,userMobility); 
+        channelParams = catstruct(channelInfo, channelParams); 
+
+        %% Compute antenna codebook
+        paaInfo = loadCodebook(paaInfo);
+
+        %% Load Channel
+        [rawMultiUserChannel, rawTargetInfo] = loadChannel(channelParams, simParams.scenarioPath);
+        [H, delay] = getMultiUserChannel(rawMultiUserChannel,paaInfo,simParams.nTimeSamp);
+        fullDigChannel  = getInterpChannel(H,delay, channelParams.numTaps, phyParams.fs*phyParams.cfgEDMG.NumContiguousChannels);
+        chanData = analogBeamforming(fullDigChannel, paaInfo,phyParams, 'beamformingMethod', 'noBeamforming');
+        chanData = chanData./sqrt(sum(sum(sum(abs(chanData).^2,1),2),3));
+        channelParams.equivalentChannel = chanData;
+        if ~isempty(sensParams)
+            channelParams.targetInfo = getTargetInfo(rawTargetInfo,sensParams.pri);
+            channelParams.ftm = getFtm(rawMultiUserChannel);
+        end
     otherwise
         error('chanModel is not supported.');
 end
 
-varargout{1} = numRunRealizationSets;
-varargout{2} = chanData;
+varargout{1} = chanData;
 
 end

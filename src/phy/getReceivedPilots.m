@@ -17,7 +17,7 @@ function [rxNdpSigSeq] = getReceivedPilots(txNdpSigSeq,tdMimoChan,phyParams,simu
 %   This file is available under the terms of the NIST License.
 
 
-assert(channelParams.chanFlag~=0,'chanFlag should not be 0 (AWGN).');
+assert(simuParams.chanFlag~=0,'chanFlag should not be 0 (AWGN).');
 
 numUsers = length(phyParams.numSTSVec);
 rxNdpSigSeq = cell(numUsers,1);

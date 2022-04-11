@@ -1,4 +1,4 @@
-function params =  configSimulation(scenarioPath)
+function params =  configSimulation(scenarioPath, varargin)
 %CONFIGSIMULATION loads the 802.11ay simulation parameters 
 %   CONFIGSIMULATION(FOLDERPATH) loads the 802.11ay simulation parameters 
 %   from simulationConfig.txt relative to the scenarios in FOLDERPATH
@@ -43,18 +43,30 @@ function params =  configSimulation(scenarioPath)
 
 %   This file is available under the terms of the NIST License.
 
-%#codegen
+p = inputParser;
+
+defaultMode = false;
+checkInputValidity = @(x) islogical(x);
+addOptional(p,'isac',defaultMode,checkInputValidity)
+parse(p,varargin{:})
+isIsac = p.Results.isac;
 
 %% Load params
 cfgPath = fullfile(scenarioPath, 'Input/simulationConfig.txt');
+if ~isfile(cfgPath)
+    error('Config file %s not defined', cfgPath)
+end
 paramsList = readtable(cfgPath,'Delimiter','\t', 'Format','%s %s' );
 paramsCell = (table2cell(paramsList))';
 params = cell2struct(paramsCell(2,:), paramsCell(1,:), 2);
 
 %% Check validity
 params = fieldToNum(params, 'debugFlag', [0 2],'step', 1,'defaultValue', 0);
-params = fieldToNum(params, 'pktFormatFlag', [0 1],'defaultValue', 1);
-params = fieldToNum(params, 'chanModel', {'AWGN','NIST','Rayleigh','Intel','MatlabTGay'},'defaultValue','Rayleigh');
+if isIsac
+    params = fieldToNum(params, 'pktFormatFlag', 0,'defaultValue', 0);
+else
+    params = fieldToNum(params, 'pktFormatFlag', [0 1],'defaultValue', 1);
+end
 params = fieldToNum(params, 'dopplerFlag', [0 1],'defaultValue', 0);
 params = fieldToNum(params, 'snrMode', {'EsNo','EbNo','SNR'},'defaultValue','EsNo');
 params = fieldToNum(params, 'snrAntNormFlag', [0 1],'defaultValue',0);
@@ -63,5 +75,10 @@ params = fieldToNum(params, 'snrRange', [-inf inf], 'step',eps,'defaultValue',[3
 params = fieldToNum(params, 'maxNumErrors', [0 inf],'step',eps, 'defaultValue',1e2);
 params = fieldToNum(params, 'maxNumPackets', [0 inf],'step',eps, 'defaultValue',1e3);
 params = fieldToNum(params, 'snrSeed', [1 inf],'step',eps, 'defaultValue',1e2);
+params = fieldToNum(params, 'nTimeSamp', [1 1e4],'step', 1, 'defaultValue',1);
+params = fieldToNum(params, 'plotRangeDopplerMap', [0 1], 'step', 1, 'defaultValue', 0);
+params = fieldToNum(params, 'plotVelocity', [0 1], 'step', 1, 'defaultValue', 0);
+params = fieldToNum(params, 'plotRange', [0 1], 'step', 1, 'defaultValue', 0);
+params.wsNameStr = pwd;
 end
 
