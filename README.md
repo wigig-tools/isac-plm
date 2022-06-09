@@ -71,7 +71,7 @@ These predefined scenarios are given as examples in `/src/examples/`. Each scena
 ## Published Work
 
 - J. Zhang, S. Blandino, N. Varshney, J. Wang, C. Gentile and N. Golmie, "Multi-User MIMO Enabled Virtual Reality in IEEE 802.11ay WLAN," 2022 IEEE Wireless Communication and Networking Conference.
-- S. Blandino, R. Tanguy, A. Sahoo and N. Golmie, "Tools, Models and Dataset for IEEE 802.11ay
+- S. Blandino, T. Ropitault, A. Sahoo and N. Golmie, "Tools, Models and Dataset for IEEE 802.11ay
  CSI-based Sensing," 2022 IEEE Wireless Communication and Networking Conference.
 
 ## Contributing
