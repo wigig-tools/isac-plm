@@ -1,7 +1,7 @@
 function params =  configChannel(scenarioPath)
 %CONFIGCHANNEL loads the channel parameters
 %   CONFIGCHANNEL(SCENARIOPATH) loads the channel parameters
-%   from SCENARIOPATH/Input/channelConfig.txt and it checks if the loaded 
+%   from SCENARIOPATH/Input/channelConfig.txt and it checks if the loaded
 %   parameters are in the expected range.
 %
 %
@@ -12,10 +12,12 @@ function params =  configChannel(scenarioPath)
 %   This file is available under the terms of the NIST License.
 
 %% Load params
-cfgPath = fullfile(scenarioPath, 'Input/channelConfig.txt');
+
+cfgPath = fullfile(scenarioPath, 'Input');
+inputFile = fullfile(cfgPath, 'channelConfig.txt');
 
 try
-    paramsList = readtable(cfgPath,'Delimiter','\t', 'Format','%s %s' );
+    paramsList = readtable(inputFile,'Delimiter','\t', 'Format','%s %s' );
 catch
     error('Channel not defined')
 end
@@ -26,7 +28,7 @@ params = cell2struct(paramsCell(2,:), paramsCell(1,:), 2);
 %%
 switch params.chanModel
     case 'AWGN'
-        
+
     case 'Rayleigh'
         params = fieldToNum(params, 'numTaps', [1 192], 'step', eps,  'defaultValue',10);
         params = fieldToNum(params, 'maxMimoArrivalDelay', [0 192], 'step', eps , 'defaultValue',0);
@@ -79,29 +81,8 @@ switch params.chanModel
         end
         params = fieldToNum(params, 'numTaps', [1 128], 'defaultValue', []);
 
-    case 'sensNIST'
-        params.runQd = any(cellfun(@(x) strcmp(x, 'qdSrcFolder'),  fieldnames(params)));
-        if params.runQd
-            params = fieldToNum(params, 'environmentFileName', {'Box.xml','LectureRoom.xml'}, 'defaultValue', 'LectureRoom.xml');
-            params = fieldToNum(params, 'generalizedScenario', [0 1], 'defaultValue', 0);
-            params = fieldToNum(params, 'indoorSwitch', [0 1], 'defaultValue', 	1);
-            if isfield(params,'referencePoint')
-                params.referencePoint = str2num(params.referencePoint); %#ok<ST2NM>
-            else
-                params.referencePoint = [0,0,0];
-            end
-            params = fieldToNum(params, 'selectPlanesByDist', [0 1], 'defaultValue', 0);
-            params = fieldToNum(params, 'switchQDGenerator', [0 1], 'defaultValue', 0);
-            params = fieldToNum(params, 'switchRandomization',[0 1], 'defaultValue', 0);
-            params = fieldToNum(params, 'totalNumberOfReflections', 0:2, 'defaultValue', 1);
-            params = fieldToNum(params, 'totalTimeDuration', [0 inf],'step', eps,'defaultValue',128.28);
-            params = fieldToNum(params, 'switchSaveVisualizerFiles' , 0:1, 'defaultValue',1);
-            params = fieldToNum(params, 'qdFilesFloatPrecision', [1:6],'defaultValue', 6);
-            params = fieldToNum(params, 'jsonOutput', 0:1,'defaultValue', 1);
-            params = fieldToNum(params, 'switchQDModel', {'nistMeasurements', 'tgayMeasurements'},'defaultValue', 'nistMeasurements');
-            params = fieldToNum(params, 'outputFormat', {'txt', 'json', 'both'},'defaultValue', 'json');
-        end
-        params = fieldToNum(params, 'numTaps', [1 192], 'step', eps,  'defaultValue',128);
+    case 'sensing'
+        params = fieldToNum(params, 'normalization', {'none', 'packet'},'defaultValue','packet');
 
     otherwise
         error('Channel model not defined')

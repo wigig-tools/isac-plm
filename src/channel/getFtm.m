@@ -14,8 +14,13 @@ ftm = cell(nNode,nNode);
 for i = 1:nNode
     for j = 1:nNode
         if i~=j
-            [~,mi] = max(channel{i,j}.channelMimo{1}.gain,[],2);
-            ftm{i,j} = channel{i,j}.channelMimo{1}.delay(mi);
+            if iscell(channel{i,j}.channelMimo{1}.gain)
+                [~,mi] = cellfun(@max, channel{i,j}.channelMimo{1}.gain);
+                ftm{i,j} =  cellfun(@(x,y) x(y), channel{i,j}.channelMimo{1}.delay, num2cell(mi));
+            else
+                [~,mi] = max(channel{i,j}.channelMimo{1}.gain,[],2);
+                ftm{i,j} = channel{i,j}.channelMimo{1}.delay(mi);
+            end
         end
     end
 end

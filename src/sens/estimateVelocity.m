@@ -1,4 +1,4 @@
-function vEst =  estimateVelocity(discreteMicroDopplerTime,slowTimeGrid,...
+function [vEst, vId] =  estimateVelocity(discreteMicroDopplerTime,slowTimeGrid,...
     velocityGrid, varargin)
 %%ESTIMATEVELOCITY Target estiamated velocity
 %
@@ -19,10 +19,13 @@ checkMethod = @(x) any(validatestring(x,validMethod));
 defaultFilterLen = 5;
 addOptional(p,'method',defaultMethod,checkMethod)
 addOptional(p,'filterLen',defaultFilterLen,@isnumeric)
+defaultMaxVelocity = 0;
+addOptional(p,'maxVelocity',defaultMaxVelocity,@isnumeric)
 
 parse(p,varargin{:});
 velocityGrid = velocityGrid(:).';
 slowTimeGrid = slowTimeGrid(:).';
+maxVelocity = p.Results.maxVelocity;
 
 assert(size(discreteMicroDopplerTime,1) == length(velocityGrid), 'Input must be the same length')
 assert(size(discreteMicroDopplerTime,3) == length(slowTimeGrid), 'Input must be the same length')
@@ -39,8 +42,17 @@ switch p.Results.method
         [~, mv] = max(spectrogram,[], 1);
         vEst  = velocityGrid(mv);
     case 'max+filter'
-        filterLen = p/Results.filterLen;
+        filterLen = p.Results.filterLen;
         [~, mv] = max(spectrogram,[], 1);
         vEst  = velocityGrid(mv);
         vEst = conv(vEst, ones(1,filterLen)/filterLen, 'same');
+end
+
+        vId = sum(spectrogram) ~= 0;
+%% Recover aliasing jumps 
+if maxVelocity~= 0 
+    normVal = pi/maxVelocity;
+    vEst = unwrap(vEst*normVal)/normVal;
+end
+
 end

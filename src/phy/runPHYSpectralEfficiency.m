@@ -1,4 +1,4 @@
-function runPHYSpectralEfficiency(example, varargin)
+function runPHYSpectralEfficiency(scenarioPath, varargin)
 %% IEEE 802.11ay MIMO Spectral Efficiency Analysis for OFDM and SC PHY
 %
 % This program evaluates the link-level spectral efficiency performances of the IEEE(R) 802.11ay(TM) EDMG OFDM OFDM 
@@ -37,7 +37,6 @@ parse(p, varargin{:});
 testOutput  = p.Results.testOutput;
 isTest = ~isempty(testOutput);
 
-scenarioPath  = fullfile('examples', example);
 if isTest
     scenarioPathOutput = fullfile(testOutput, 'Output');
 else

@@ -41,7 +41,7 @@ if strcmp(simParams.metricStr,'ER')
     fprintf(simParams.fileID,'## Save BER vs SNR Fig File:\t%s\r\n',simParams.figNameStrBER);
     fprintf(simParams.fileID,'## Save PER vs SNR Fig File:\t%s\r\n',simParams.figNameStrPER);
     fprintf(simParams.fileID,'## Save DR vs SNR Fig File:\t%s\r\n',simParams.figNameStrDR);
-    
+
 elseif strcmp(simParams.metricStr,'SE')
     if simParams.chanFlag == 3
         numSTSMax = max(channelParams.nistChan.graphTxRxOriginal);
@@ -55,7 +55,7 @@ elseif strcmp(simParams.metricStr,'SE')
 
     %% Save Data
     savefig(figDataSEvsSNR, fullfile(simParams.resultPathStr, simParams.figNameStrSE));
-    clear figDataSEvsSNR 
+    clear figDataSEvsSNR
 
     fprintf('- Save SE vs SNR Fig File:\t%s\n',simParams.figNameStrSE);
     fprintf(simParams.fileID,'## Save SE vs SNR Fig File:\t%s\r\n',simParams.figNameStrSE);
@@ -64,36 +64,86 @@ elseif strcmp(simParams.metricStr,'ISAC')   &&  ~isempty(results.sensing)
     if ~isfolder (dirOut)
         mkdir(dirOut)
     end
+    generateSensingPlots(simParams, results.sensing, results.sensingInfo, dirOut);
 
     %% save info
     s = results.sensingInfo(1);
-    s.timeShift = [results.sensingInfo.timeShift]; % Recovered with sync, might change with SNR
+    s.timeOffset = [results.sensingInfo.timeOffset]; % Recovered with sync, might change with SNR
     file = fullfile(dirOut, 'sensingInfo.json');
     fid = fopen(file, 'w');
     json = jsonencode(s);
     fprintf(fid, '%s\n', json);
     fclose(fid);
 
+    % save results
     file = fullfile(dirOut, 'sensingResults.json');
     fid = fopen(file, 'w');
     s = [];
     snrvect = simParams.snrRange(1):simParams.snrStep:simParams.snrRange(end);
+    n = size(results.sensingInfo(1).gtRange,2);
     for i = 1:length(results.sensing)
-        s.snr = snrvect(i);        
-        s.nmseRange = results.sensing(i).rangeNMSEdB;
-        s.nmseVelocity = results.sensing(i).velocityNMSEdB;
-        s.mseRange = results.sensing(i).rangeMSEdB;
-        s.mseVelocity = results.sensing(i).velocityMSEdB;
-        s.rangeEstimate = results.sensing.rEst;
-        s.velocityEstimate = results.sensing.vEst;
-        s.rangeDopplerMap= results.sensing.doppler;
+        s.snr = snrvect(i);
+        s = getFieldOutputJson(results.sensing(i),'rangeNMSEdB', s, n);
+        s = getFieldOutputJson(results.sensing(i),'velocityNMSEdB', s, n-1);
+        s = getFieldOutputJson(results.sensing(i),'rangeMSEdB', s, n);
+        s = getFieldOutputJson(results.sensing(i),'velocityMSEdB', s, n-1);
+        if isfield(results.sensing(i), 'aEst')
+            if ~isempty(results.sensing(i).aEst)
+                s = getFieldOutputJson(results.sensing(i),'azErr', s, n);
+                s = getFieldOutputJson(results.sensing(i),'elErr', s, n);
+            end
+        end
         json = jsonencode(s);
         fprintf(fid, '%s\n', json);
     end
     fclose(fid);
-    
-    generateSensingPlots(simParams, results.sensing, results.sensingInfo, dirOut);
-    
+
+    % save target info
+
+    file = fullfile(dirOut, 'targetEstimation.json');
+    fid = fopen(file, 'w');
+    s = [];
+    for i = 1:length(results.sensing)
+
+        s.range = results.sensing.rEst;
+        s.velocity = results.sensing.vEst;
+        if isfield(results.sensing(i), 'aEst')
+            if ~isempty(results.sensing(i).aEst)
+                s.angleAz = results.sensing.aEst(:,1);
+                s.angleEl = results.sensing.aEst(:,2);
+            end
+        end
+        json = jsonencode(s);
+        fprintf(fid, '%s\n', json);
+    end
+    fclose(fid);
+
+    % Save RDA map
+    file = fullfile(dirOut, 'rda.json');
+    fid = fopen(file, 'w');
+    s = [];
+    snrvect = simParams.snrRange(1):simParams.snrStep:simParams.snrRange(end);
+    for i = 1:length(results.sensing)
+        for j = 1:size(results(i).sensing.rda,3)
+            rda = permute(results(i).sensing.rda(:,:,j,:), [1 2 4 3]);
+            s.snr = snrvect(i);
+            s.sensInstanceId = j;
+            iRda = find(rda);
+            [ir,iv,ia]=ind2sub(size(results(i).sensing.rda), iRda);
+            s.axisRange = ir;
+            s.axisVelocity = iv;
+            s.axisAngle = ia;
+            s.reflectionPower = rda(iRda);
+            json = jsonencode(s);
+            fprintf(fid, '%s\n', json);
+            results(i).sensing.rdaMap.axisRange = ir;
+            results(i).sensing.rdaMap.axisVelocity = iv;
+            results(i).sensing.rdaMap.axisAngle = ia;
+            results(i).sensing.rdaMap.reflectionPower = rda(iRda);
+        end
+    end
+    fclose(fid);
+    results.sensing = rmfield(results.sensing, 'rda');
 end
 
 fprintf('- Save Workspace Data File:\t%s\n',simParams.wsNameStr);
@@ -108,8 +158,16 @@ fclose(simParams.fileID);
 % Save common variables
 wsDataPathStr = fullfile(simParams.resultPathStr,simParams.wsNameStr);
 save(wsDataPathStr, ...
-    'simParams', 'phyParams','channelParams','cfgSim', 'results');
+    'simParams', 'phyParams','cfgSim', 'results');
 
 end
 
+function s = getFieldOutputJson(str, field,s,n)
+if isfield(str, field)
+    s.(field)  = str.(field);
+else
+    s.(field)  = nan(1,n);
+end
+
+end
 % End of file

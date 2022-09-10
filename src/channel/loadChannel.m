@@ -1,4 +1,4 @@
-function [outputChannel, varargout] = loadChannel(channel, pathScenario, varargin)
+function [outputChannel, varargout] = loadChannel(pathScenario, varargin)
 %LOADCHANNEL returns the multi user propagation channel generated with NIST
 %   QD software.
 %
@@ -20,41 +20,22 @@ function [outputChannel, varargout] = loadChannel(channel, pathScenario, varargi
 %   H = LOADCHANNEL(N, 'filePath', 'path') allows to specify the folder
 %   location of the QD output.
 %
-%   Copyright 2020 NIST/CLT (steve.blandino@nist.gov)
+%   Copyright 2020-2022 NIST/CLT (steve.blandino@nist.gov)
 
-%#codegen
 
-if channel.runQd
-    
-    dirPathCfgChan = fullfile(pathScenario, 'Input');
-    dirPathChan = fullfile(pathScenario, 'Output');
-    if ~exist(dirPathCfgChan, 'dir')
-        mkdir(dirPathCfgChan)
-    end
-    [~,folderName] = fileparts(pathScenario); %#ok<ASGLU>
-    %% Write config files
-    
-    for node = 1:channel.numberOfNodes
-        writematrix(channel.nodePositionConfigFile{node}, fullfile(dirPathCfgChan, sprintf('NodePosition%d.dat',node-1)));
-        writematrix(channel.nodeRotationConfigFile{node}, fullfile(dirPathCfgChan, sprintf('NodeRotation%d.dat',node-1)));
-        writematrix(channel.nodePaaConfigFile{node}, fullfile(dirPathCfgChan, strcat('node', num2str(node-1), 'paa.dat')));
-    end
-    
-    paraCfg = rmfield(channel, {'nodePaaConfigFile', 'nodePositionConfigFile', 'nodeRotationConfigFile','numberOfNodes','chanModel', 'runQd','chanFlag', 'tgayChannel','nistChan', 'numTaps'});
-    writetable(table(struct2cell(paraCfg), 'RowNames', fieldnames(paraCfg)), fullfile(dirPathCfgChan, 'paraCfgCurrent'),'WriteRowNames', true, 'WriteVariableNames', false, 'Delimiter' , '\t');
-    writematrix(zeros(channel.numberOfNodes,3), fullfile(dirPathCfgChan,  'nodeVelocities.dat') )
-    
-    run(fullfile(pathScenario(1:find(pathScenario==filesep, 2, 'last' )), 'main_fun(folderName)'))
-else
-    dirPathChan = fullfile(pathScenario,'Input/qdChannel');
-end
+p = inputParser;
+addParameter(p,'paa', [1 1]);
+parse(p, varargin{:});
 
+paaNodes  = p.Results.paa;
+nodes = length(paaNodes);
+
+dirPathChan = fullfile(pathScenario,'Input/qdChannel');
 fid = fopen(fullfile(dirPathChan,'qdOutput.json'));
 if ~fid
     error('Provide input channel')
 end
 
-paaNodes  = cellfun(@(x) size(x,1),channel.nodePaaConfigFile);
 Nlines = 1;
 s = struct('tx', cell(1,Nlines), ...
     'rx', cell(1,Nlines), ...
@@ -68,6 +49,7 @@ s = struct('tx', cell(1,Nlines), ...
     'aoaEl', cell(1,Nlines), ...
     'aoaAz', cell(1,Nlines) ...
     );
+
 while ~feof(fid)
     tline = fgetl(fid);
     s(Nlines) = jsondecode(tline);
@@ -76,9 +58,9 @@ end
 
 fclose(fid);
 
-nodeList = 1:channel.numberOfNodes;
+nodeList = 1:nodes;
 id = 1;
-outputChannel = cell(channel.numberOfNodes,channel.numberOfNodes);
+outputChannel = cell(nodes,nodes);
 for tx = nodeList
     for rx = nodeList(nodeList~=tx)
         for txPaa = 1:paaNodes(tx)
@@ -93,7 +75,6 @@ end
 
 fid = fopen(fullfile(dirPathChan,'qdTargetOutput.json'));
 if fid>0
-    paaNodes  = cellfun(@(x) size(x,1),channel.nodePaaConfigFile);
     Nlines = 1;
     s = struct('tx', cell(1,Nlines), ...
         'rx', cell(1,Nlines), ...
@@ -117,13 +98,16 @@ if fid>0
     fclose(fid);
 
     id = 1;
-    outputTargetChannel = cell(channel.numberOfNodes,channel.numberOfNodes);
+    numTgt = max([s.target])+1;
+    outputTargetChannel = cell(nodes,nodes);
     for tx = nodeList
         for rx = nodeList(nodeList~=tx)
             for txPaa = 1:paaNodes(tx)
                 for rxPaa = 1:paaNodes(rx)
-                    outputTargetChannel{tx,rx}.channelMimo{txPaa, rxPaa} = s(id);
-                    id = id+1;
+                    for tgId = 1:numTgt 
+                    	outputTargetChannel{tx,rx}.channelMimo{txPaa, rxPaa,tgId} = s(id);
+                    	id = id+1;
+                    end
                 end
             end
         end
@@ -133,21 +117,4 @@ else
     varargout{1} =  [];
 end
 
-end
-
-
-function structOut = initializeChannelStruct(varName, NChan) %#ok<INUSD>
-% Helper function: create emty channel structure with field varName.
-x= repmat('varName{%d}, cell(1,NChan),',[1 length(varName)]);
-x(end) = [];
-x= sprintf(x, 1:length(varName));
-structOut = eval(['struct(', x,');']);
-end
-
-function structIn = sisoMat2struct(structIn, sisoChan) %#ok<INUSD>
-% Helper function: convert matrix in structure
-fn = fieldnames(structIn);
-for i = 1:length(fn)
-    eval(['structIn.',fn{i},'= sisoChan(',num2str(i), ',:);'])
-end
 end

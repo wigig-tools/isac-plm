@@ -55,7 +55,7 @@ spatialMapType = cfgEDMG.SpatialMappingType;
 spatialMapMat = cfgEDMG.SpatialMappingMatrix;
 
 numSTSTot = sum(numSTSVec);
-pktFormatFlag = simulationParams.pktFormatFlag;
+psduMode = simulationParams.psduMode;
 chanFlag = simulationParams.chanFlag;
 mimoFlag = simulationParams.mimoFlag;
 svdFlag = phyParams.svdFlag;
@@ -65,10 +65,9 @@ equaAlgoStr = simulationParams.equaAlgoStr;
 softCsiFlag = phyParams.softCsiFlag;
 ldpcDecMethod = phyParams.ldpcDecMethod;
 
-assert(ismember(pktFormatFlag, [0,1]), 'pktFormatFlag should be either 0 or 1.')
 assert(ismember(mimoFlag, [0,1,2]), 'pktFormatFlag should be either 0 or 1.')
 
-if pktFormatFlag == 0
+if psduMode == 0
     % PPDU
     if nargin == 7
         startOffset = varargin{1};
@@ -82,7 +81,7 @@ if pktFormatFlag == 0
     scaleFactor = phyParams.precScaleFactor;
     svdChan = phyParams.svdChan;
 else
-    % PSDU pktFormatFlag = 1
+    % PSDU 
     scaleFactor = 1;
     svdChan = [];
     startOffset = [];
@@ -108,7 +107,7 @@ else
 
 end
 
-if pktFormatFlag && chanFlag ~= 0
+if psduMode == 1 && chanFlag ~= 0
     if strcmp(phyMode,'OFDM')
         % channel estimation of the first doppler realization
         fdMimoChan = cellfun(@(x) squeeze(x(:,1,:,:)), fdMimoChan, ...
@@ -228,7 +227,7 @@ for iUser = 1:numUsers
         error('noiseVarLin format is incorrect.');
     end
 
-    if pktFormatFlag == 0
+    if psduMode == 0
         %% Extract data field and Compensate CFO 
         % Get Indices of fields within the packet
         fieldIndices = nist.edmgFieldIndices(cfgEDMG);
@@ -268,7 +267,7 @@ for iUser = 1:numUsers
         rxDataGrid{iUser} = rxSymbGrid(ofdmCfg.DataIndices,:,:);
     else
         % SC
-        if pktFormatFlag == 0
+        if psduMode == 0
             rxDataBlks{iUser} = reshape(rxDataSeq,[numDataSubc,numScBlksMax,numSTSVec(iUser)]);
         else
             symbOffset = phyParams.symbOffset;

@@ -251,7 +251,7 @@ for setIdx = 1:channelParams.numRunRealizationSets
                 rxDpSigSeq = addNoise(fadeDpSigSeq,noiseVarLin.ActSubc);
                 
                 %% Receiver processing
-                if paraSimu.pktFormatFlag == 0
+                if paraSimu.psduMode == 0
                     %Full receiver
                     [syncError, rxDpPsdu,detSymbBlks,rxDataGrid,rxDataBlks] = ...
                         edmgRxFull(rxDpSigSeq, paraPhy, cfgSim);
@@ -414,7 +414,7 @@ parse(p, vin{:});
 testOutput  = p.Results.testOutput;
 isTest = ~isempty(testOutput);
 
-scenarioPath  = fullfile('examples', example);
+scenarioPath  = example;
 if ~isfolder(scenarioPath)
     error('Scenario not defined')
 end

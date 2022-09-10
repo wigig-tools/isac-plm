@@ -1,2 +1,0 @@
-ParameterName	ParameterValue
-chanModel	sensNIST

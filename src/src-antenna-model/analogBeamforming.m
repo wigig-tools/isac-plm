@@ -1,106 +1,97 @@
-function [Hout, varargout] = analogBeamforming(H, paaInfo,phyParams, varargin)
-%%ANALOGBEAMFORMING returns the matrix of dimension:
-% digital rx chain x digital tx chain x taps x time
-
-% NIST-developed software is provided by NIST as a public service. You may 
-% use, copy and distribute copies of the software in any medium, provided 
-% that you keep intact this entire notice. You may improve,modify and 
-% create derivative works of the software or any portion of the software, 
-% and you may copy and distribute such modifications or works. Modified 
-% works should carry a notice stating that you changed the software and 
-% should note the date and nature of any such change. Please explicitly 
-% acknowledge the National Institute of Standards and Technology as the 
-% source of the software. NIST-developed software is expressly provided 
-% "AS IS." NIST MAKES NO WARRANTY OF ANY KIND, EXPRESS, IMPLIED, IN FACT OR
-% ARISING BY OPERATION OF LAW, INCLUDING, WITHOUT LIMITATION, THE IMPLIED 
-% WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, 
-% NON-INFRINGEMENT AND DATA ACCURACY. NIST NEITHER REPRESENTS NOR WARRANTS 
-% THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR ERROR-FREE, 
-% OR THAT ANY DEFECTS WILL BE CORRECTED. NIST DOES NOT WARRANT OR MAKE ANY
-% REPRESENTATIONS REGARDING THE USE OF THE SOFTWARE OR THE RESULTS THEREOF,
-% INCLUDING BUT NOT LIMITED TO THE CORRECTNESS, ACCURACY, RELIABILITY,
-% OR USEFULNESS OF THE SOFTWARE.
+function [Hout, varargout] = analogBeamforming(H, codebook, ...
+    beamformingMethod, varargin)
+%%ANALOGBEAMFORMING  Analog Beamforming 
 % 
-% You are solely responsible for determining the appropriateness of using 
-% and distributing the software and you assume all risks associated with 
-% its use,including but not limited to the risks and costs of program 
-% errors, compliance with applicable laws, damage to or loss of data, 
-% programs or equipment, and the unavailability or interruption of 
-% operation. This software is not intended to be used in any situation 
-% where a failure could cause risk of injury or damage to property. 
-% The software developed by NIST employees is not subject to copyright 
-% protection within the United States.
+%   Heq = ANALOGBEAMFORMING(H, C, PHY, BF) returns the equivalent
+%   channel Heq given the full digital channel H, the codebook C and the
+%   beamforming method spcefied as 'maxAnalogSnr', 'sweepRx', 'sweepTx' or 
+%   'sweepTxRx', 'noBeamforming'.
+%   
+%   H is a cell array over time. Each entry is the full digital matrix as
+%   receive antennas x transmit antennas x delay taps
+%   H out is the matrix of size: receive chains x transmit chains x delay
+%   taps x num of tx AWV x num of rx AWVs
 %
-% 2020 NIST/CTL (steve.blandino@nist.gov)
+
+% 2020-2022 NIST/CTL (steve.blandino@nist.gov)
+
+%   This file is available under the terms of the NIST License.
+
 
 %% Varargin processing
 p = inputParser;
-validationFcn = @(x) ismember(x, {'maxAnalogSnr', 'maxHybridSinr', 'hybridMaxSnrZf', 'noBeamforming'});
-addOptional(p,'beamformingMethod','maxAnalogSnr',validationFcn)
+validationFcn = @(x) ismember(x, {'maxAnalogSnr', 'maxHybridSinr', ...
+    'hybridMaxSnrZf', 'noBeamforming', 'sweepRx', 'sweepTx'});
+assert(validationFcn(beamformingMethod), 'Wrong beamforming method')
+addOptional(p,'nSta',1)
+
+switch beamformingMethod
+    case 'sweepRx'
+        addOptional(p,'txbf', [])
+    case  'sweepTx'
+        addOptional(p,'rxbf', [])
+end
+
 parse(p, varargin{:});
-beamformingMethod  = p.Results.beamformingMethod;
-assert(strcmp(beamformingMethod, 'noBeamforming'), 'Analog beamforming not implemented')
+
+switch beamformingMethod
+    case 'sweepRx'
+        txbf  = p.Results.txbf;
+    case  'sweepTx'
+        rxbf  = p.Results.rxbf;
+end
+nSta = p.Results.nSta;
 
 %% Vars init
-Fa = [];
-Fd = [];
 time = size(H,1);
-NSta = phyParams.numUsers;
-nodes = size(paaInfo,2);
-NAp = nodes-NSta;
+infoScan = [];
+
+% Single antenna tx and rx - No beamforming needed
+if  all(size(H{1}, [1 2]) == [1 1])
+    Hout = permute(reshape(cell2mat(H), 1,1, time,[]), [1 2 4 3]);
+    txbf = 1;
+    rxbf = 1;
+
+else
+    nodes = size(codebook,2);
+NAp = nodes-nSta;
 apId = 1:NAp;
 staId = NAp+1:nodes;
-paaInfoAp = paaInfo(apId);
-paaInfoSta = paaInfo(staId);
+paaInfoAp = codebook(apId);
+paaInfoSta = codebook(staId);
+    %% Get analog beamsteering
+    switch beamformingMethod
 
-for ap = 1:NAp
-    digitalChainAp(ap) = paaInfoAp(ap).NumPaa;
-    antennasAp(ap) = paaInfoAp(ap).NumAntenna;
-    numStreams = sum(phyParams.numSTSVec);
-    FaTmp = num2cell(ones(antennasAp(ap),digitalChainAp(ap)),1);
-    Fa(:,:,ap) = blkdiag(FaTmp{:});
-    Fd(:,:,ap) = eye(digitalChainAp(ap), numStreams);
-end
+        case 'noBeamforming'
+            Hout = zeros(1,1,size(H{1},3), time);
+            for t = 1:time
+                Hout(:,:,:,t) = sum(sum(H{1},1),2);
+            end
 
-for sta = 1:NSta
-    digitalChainSta(sta) = paaInfoSta(sta).NumPaa;
-    antennasSta(sta) = paaInfoSta(sta).NumAntenna;
-    numStreams = phyParams.numSTSVec(sta);
-    WaTmp =  num2cell(ones(antennasSta(sta),digitalChainSta(sta)),1);
-    Wa(:,:,sta) = blkdiag(WaTmp{:});
-    Wd(:,:,sta) = eye(digitalChainSta(sta), numStreams);
-end
-splitWa =  num2cell(Wa,1); 
-Wa = blkdiag(splitWa{:});
+        case 'maxAnalogSnr'
+            [Hout, txbf, rxbf, infoScan] = maxAnalogSnr(H, paaInfoAp,paaInfoSta);
 
-%% Get analog beamsteering
-switch beamformingMethod
+        case 'sweepTx'
+            [Hout, txbf] = sweepSingleSide(H, rxbf, paaInfoSta,'tx');
 
-    case 'noBeamforming'
-         
-        for t = 1:time
-            Ht = matrix3Dproduct(H{t},Fa);
-            Hout(:,:,:,t) = matrix3Dproduct(Wa, Ht);
-        end
-        
-        
-    case 'maxAnalogSnr'
-%         Fa = maxAnalogSnr(H, paaInfo);
-    case 'maxHybridSinr'
-%         [Fa, Fd] = maxHybridSinr(H, paaInfo);
+        case 'sweepRx'
+            [Hout, rxbf] = sweepSingleSide(H, txbf,paaInfoSta, 'rx');
 
-    case 'hybridMaxSnrZf'
-%         [Fa, Fd] = hybridMaxSnrZf(H, paaInfo);
+        case 'sweepTxRx'
+
+        case 'maxHybridSinr'
+            %         [Fa, Fd] = maxHybridSinr(H, paaInfo);
+
+        case 'hybridMaxSnrZf'
+            %         [Fa, Fd] = hybridMaxSnrZf(H, paaInfo);
+    end
 
 end
-
-%% Apply analog beamforming
-
-
 
 %% Prepare output
-varargout{1}  = Fa;
-varargout{2}  = Wa;
+varargout{1}  = txbf;
+varargout{2}  = rxbf;
+varargout{3} = infoScan;
 
 
 end

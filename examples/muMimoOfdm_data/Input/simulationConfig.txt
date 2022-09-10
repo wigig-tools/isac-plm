@@ -1,6 +1,6 @@
 ParameterName	ParameterValue
 debugFlag	0
-pktFormatFlag	1
+psduMode	1
 chanFlag	Rayleigh
 dopplerFlag	0
 noiseFlag	2

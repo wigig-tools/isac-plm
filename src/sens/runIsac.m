@@ -1,4 +1,4 @@
-function runIsac(scenario, varargin)
+function runIsac(scenarioPath, varargin)
 %%RUNISAC evaluates the bit and packet error rates
 % (BER/PER) performances of the IEEE(R) 802.11ay(TM) and performs sensing.
 %
@@ -43,7 +43,7 @@ function runIsac(scenario, varargin)
 % formed as either the non-data packet (NDP) or the data packet (DP).
 
 %% Varargin processing
-[isTest,scenarioPath] = varArgInitProcess(scenario, inputParser, varargin);
+isTest = varArgInitProcess(scenarioPath, inputParser, varargin);
 
 %% Config
 [simParams, phyParams, channelParams, sensParams] = configScenario(scenarioPath,...
@@ -119,14 +119,14 @@ outputFiles(1:2) = [];
 
 end
 
-function [isTest,scenarioPath]= varArgInitProcess(example, p, vin)
+function [isTest]= varArgInitProcess(scenarioPath,p, vin)
 %Configure path, check if the software is used in test mode
 addParameter(p,'testOutput', []);
 parse(p, vin{:});
 testOutput  = p.Results.testOutput;
 isTest = ~isempty(testOutput);
 
-scenarioPath  = fullfile('examples', example);
+% scenarioPath  = fullfile('examples', example);
 if isTest
     scenarioPathOutput = fullfile(testOutput, 'Output');
 else

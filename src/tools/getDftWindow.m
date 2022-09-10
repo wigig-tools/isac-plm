@@ -52,4 +52,8 @@ switch(T)
         end
         w  = exp(-1/2*((alpha*linspace(-N/2,N/2,N)/(N/2)).^2)).';
 
+    case 'kaiser'
+        beta = 3.4;
+        w = kaiser(N,beta);
+
 end

@@ -6,7 +6,7 @@ function h = clutterRemoval(h, varargin)
 %   slow time signals and return the MxN filtered signal. 
 %   Defualt method is DC blocker (remove the dc component of the signal)
 
-%   2022 NIST/CTL Steve Blandino
+%   2022 NIST/CTL Steve Blandino, Neeraj Varshney
 
 %   This file is available under the terms of the NIST License.
 
@@ -14,10 +14,12 @@ function h = clutterRemoval(h, varargin)
 p = inputParser;
 
 defaultMethod = 'mean';
-validMethod = {'mean'};
+validMethod = {'mean','filter'};
 checkMethod = @(x) any(validatestring(x,validMethod));
+defaultAlpha = 0.85;
 
 addOptional(p,'method',defaultMethod,checkMethod)
+addOptional(p,'alpha',defaultAlpha,@isnumeric)
 
 parse(p,varargin{:});
 
@@ -27,5 +29,12 @@ switch p.Results.method
         hclutter = mean(h);
         %% Remove static channel
         h = h- hclutter;
+    case 'filter'
+        y(1,:) = h(1,:);
+        for i = 2:size(h,1)
+            y(i,:) = h(i,:) - h(i-1,:) + p.Results.alpha * y(i-1,:);
+        end
+        h = y;
+     
 end
 end

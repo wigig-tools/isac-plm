@@ -56,28 +56,52 @@ cfOffset = cell(phyParams.numUsers,1);
 syncMargin = phyParams.giLength-round(phyParams.symbOffset*phyParams.giLength);
 
 for iUser = 1:phyParams.numUsers
-
-    [pktErrDp{iUser}, startOffsetDp{iUser}, preambleDp] = edmgRxPreambleProcess(rxDpSigSeq{iUser}, ...
-        phyParams.cfgEDMG,'userIdx',iUser, 'syncMargin', syncMargin);
-    
-    if pktErrDp{iUser} || (startOffsetDp{iUser}+fieldIndices.EDMGData(2) > size(rxDpSigSeq{iUser},1))
-        syncError = true;
-        varargout{1} = [];
-        varargout{2} = [];
-        return; 
+    if phyParams.cfgEDMG.MsSensing == 0
+        [pktErrDp{iUser}, startOffsetDp{iUser}, preambleDp] = edmgRxPreambleProcess(rxDpSigSeq{iUser}, ...
+            phyParams.cfgEDMG,'userIdx',iUser, 'syncMargin', syncMargin);
+        if pktErrDp{iUser} || (startOffsetDp{iUser}+fieldIndices.EDMGData(2) > size(rxDpSigSeq{iUser},1))
+            syncError = true;
+            varargout{1} = [];
+            varargout{2} = [];
+            return;
+        end
+    else
+        [pktErrDp{iUser}, startOffsetDp{iUser}, preambleDp] = edmgRxTrnProcess(rxDpSigSeq{iUser}, ...
+            phyParams.cfgEDMG,'userIdx',iUser, 'syncMargin', syncMargin);
+        if pktErrDp{iUser} 
+            syncError = true;
+            varargout{1} = [];
+            varargout{2} = [];
+            return;
+        end
     end
+    
+%     if pktErrDp{iUser} || (startOffsetDp{iUser}+fieldIndices.EDMGData(2) > size(rxDpSigSeq{iUser},1))
+%         syncError = true;
+%         varargout{1} = [];
+%         varargout{2} = [];
+%         return; 
+%     end
     estNoiseVarDp{iUser} = 1./preambleDp.edmg.snrEst;   % EDMG Test
     if strcmpi(phyParams.phyMode, 'OFDM')
-        estCFRDp{iUser} = reformatSUMIMOChannel(preambleDp.edmg.chanEst,'FD');
-        cfOffset{iUser} = preambleDp.edmg.CFO;
+		estCFRDp{iUser} = reformatSUMIMOChannel(preambleDp.edmg.chanEst,'FD');
+		cfOffset{iUser} = preambleDp.edmg.CFO;
+		fullBandCfr = zeros(phyParams.ofdmInfo.NFFT, size(estCFRDp{iUser},2), size(estCFRDp{iUser},3));
+		fullBandCfr(phyParams.activeSubcIdx,:,:) =estCFRDp{iUser} ;
+		estCIRDp{iUser} = {ifft(fullBandCfr, [],1)};
     else
         % SC
-        estCIRDp{iUser} = reformatSUMIMOChannel(preambleDp.edmg.chanEst,'TD');
+        if phyParams.cfgEDMG.MsSensing == 0
+            estCIRDp{iUser} = reformatSUMIMOChannel(preambleDp.edmg.chanEst,'TD');
+        else
+            estCIRDp{iUser} = preambleDp.edmg.chanEst;
+        end
         estCFRDp{iUser} = [];
         cfOffset{iUser} = preambleDp.edmg.CFO;
     end
 end
 
+if phyParams.cfgEDMG.MsSensing == 0
 if any(cell2mat(pktErrDp)) || ...
         any(cell2mat(startOffsetDp)+double(fieldIndices.EDMGData(2)) > ...
         cell2mat(cellfun(@(x) size(x,1), rxDpSigSeq, 'UniformOutput', false)))
@@ -86,10 +110,22 @@ if any(cell2mat(pktErrDp)) || ...
     varargout{2} = [];
     return;
 end
+else
+    if any(cell2mat(pktErrDp))
+        syncError = true;
+        varargout{1} = [];
+        varargout{2} = [];
+        return;
+    end
+end
 
 %% Data Processing at MIMO Receiver
+if phyParams.cfgEDMG.MsSensing == 0
 [rxDpPsdu,detSymbBlks,eqSymbGrid,rxDataGrid,rxDataBlks] = edmgRxMIMOData(rxDpSigSeq,phyParams,simParams, ...
     estCIRDp,estCFRDp,estNoiseVarDp,startOffsetDp,cfOffset,phyParams.precScaleFactor,phyParams.svdChan);
+else
+    rxDpPsdu = []; detSymbBlks=[];eqSymbGrid=[];rxDataGrid=[];rxDataBlks=[];
+end
 
 varargout{1} = eqSymbGrid;
 varargout{2} = estCIRDp;

@@ -1,6 +1,6 @@
 ParameterName	ParameterValue
 debugFlag	0
-pktFormatFlag	0
+psduMode	0
 chanModel	Rayleigh
 dopplerFlag	0
 snrMode	EsNo

@@ -1,4 +1,5 @@
-function  [simuParams,phyParams,channelParams, nodeParams] = setDependencies(simuParams,phyParams,channelParams, nodeParams)
+function  [simuParams,phyParams,channelParams, nodeParams] = ...
+    setDependencies(simuParams,phyParams,channelParams, nodeParams)
 %scriptDependenciesFun return parameters dependent on the configuration parameters
 
 %   2019~2021 NIST/CTL Jiayi Zhang, Steve Blandino
@@ -26,7 +27,7 @@ simuParams.numUsers = phyParams.numUsers;
 %% Setup Controllor for System, Channel
 
  % 0,1,2,3,4 respectevely
-simuParams.chanFlag =  find(ismember({'AWGN', 'Rayleigh', 'MatlabTGay', 'NIST', 'sensNIST'}, channelParams.chanModel ))-1;
+simuParams.chanFlag =  find(ismember({'AWGN', 'Rayleigh', 'MatlabTGay', 'NIST', 'sensing'}, channelParams.chanModel ))-1;
 
 if phyParams.numUsers>1
     simuParams.mimoFlag = 2;           % mimo flag         =0: SISO, =1: SU-MIMO, =2: MU-MIMO
@@ -54,7 +55,7 @@ end
 %% Setup Tx/Rx signal processing
 phyParams = setTxRxProcessParams(phyParams);
 
-if simuParams.pktFormatFlag == 0
+if simuParams.psduMode == 0
     if phyParams.equiChFlag ~= 1
         phyParams.equiChFlag = 1;
      %   warning('equiChFlag set to 1');
@@ -131,8 +132,8 @@ simuParams.plotProperty.Line = {'-'; '-'; ':'; '-.';};
 simuParams.dtStr = datestr(now,30); % 'yyyymmddTHHMMSS'
 
 
-[simuParams, phyParams, channelParams, nodeParams] = setParameterConstraint(simuParams,phyParams,channelParams, nodeParams); 
+[simuParams, phyParams, channelParams, nodeParams] = ...
+    setParameterConstraint(simuParams,phyParams,channelParams, nodeParams); 
 
 % Set System Object Initialization
 phyParams = setPhySystemInit(phyParams);
-   

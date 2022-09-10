@@ -67,6 +67,38 @@ properties (Access = public)
     %   property applies when TrainingLength>0. The default value is
     %   'TRN-R'.
     PacketType = 'TRN-R';
+    %SubfieldSeqLength Subfield Seqence Lengt
+    % Specify the length of the Golay sequence used to transmit the TRN 
+    % subfields present in the TRN field of the PPDU and is set as 128,256 
+    % or 64. This property applies when TrainingLength>0. The default value
+    % is 128.
+    SubfieldSeqLength = 128;
+    %UnitP TRN-Unit P
+    % For EDMG BRP-TX and EDMG BRP-RX/TX PPDUs, the value of this field 
+    % describes the number of TRN subfields in a TRNUnit that are 
+    % transmitted using the same AWV used in the transmission of the 
+    % preamble and Data fields. Possible values for this field are 0,1,2,4
+    UnitP = 2;
+    %UnitM TRN-Unit M
+    % For EDMG BRP-TX PPDUs, the transmitter may change the AWV at the 
+    % beginning of each set of N TRN subfields present in the last M 
+    % TRN subfields of each TRN-Unit in the TRN field, where M is the value
+    % of this field plus one and the value of N is indicated by UnitN. 
+    % For EDMG BRP-RX/TX PPDUs, the value of this field plus one indicates 
+    % the number of TRN subfields in a TRN-Unit transmitted with the same 
+    % AWV following a possible AWV change.
+    UnitM = 1;
+    %UnitN TRN-Unit N
+    % The value of this field indicates the number of consecutive TRN 
+    % subfields within EDMG TRNUnitM that are transmitted using the same 
+    % AWV. Possible values for this field
+    % are as follows: 1,2,3,4,8
+    UnitN = 1;
+    %UnitRxPerUnitTx RX TRN-Units per Each TX TRN-Unit
+    % The value of this field plus one indicates the number of consecutive
+    % TRN-Units in the TRN field for which the transmitter remains with the
+    % same transmit AWV
+    UnitRxPerUnitTx = 54;
     %BeamTrackingRequest Indicates beam tracking is requested
     %   Set to true to indicate beam tracking is requested. The default is
     %   false. This property applies when TrainingLength>0.
@@ -200,6 +232,9 @@ properties (Access = public)
     % NCB = 2 for 4.32 GHz and 4.32+4.32 GHz, NCB = 3 for 6.48 GHz, and NCB = 4 for 8.64 GHz channel
     % Default NCB = 1.
     NumContiguousChannels = 1;
+    % Set to 1 to Indicates that the PPDU is an EDMG Multi-Static Sensing PPDU
+    % Set to 0 otherwise
+    MsSensing = 0;
 end
 
 properties(Constant, Hidden)
@@ -263,10 +298,46 @@ methods
   function obj = set.TrainingLength(obj, val)
     propName = 'TrainingLength';
     % Training length must be a multiple of 4, <= 64, and >= 0
-    validateattributes(val,{'numeric'},{'real','integer','scalar','>=',0,'<=',64},[class(obj) '.' propName],propName);
-    coder.internal.errorIf(mod(val,4)~=0,'nist:edmgConfig:InvalidTrainingLength');
+    validateattributes(val,{'numeric'},{'real','integer','scalar','>=',0,'<=',255},[class(obj) '.' propName],propName);
+%     coder.internal.errorIf(mod(val,4)~=0,'nist:edmgConfig:InvalidTrainingLength');
     obj.(propName) = val;
   end
+
+
+  function obj = set.SubfieldSeqLength(obj, val)
+      propName = 'SubfieldSeqLength';
+      % Training length must be a multiple of 4, <= 64, and >= 0
+      validateattributes(val,{'numeric'},{'real','integer','scalar','>=',64,'<=',256},[class(obj) '.' propName],propName);
+      assert(ismember(val,[64 128 256])==1,'nist:edmgConfig:SubfieldSeqLength should be defined as 64, 128 or 256');
+      obj.(propName) = val;
+  end
+
+  function obj = set.UnitP(obj, val)
+      propName = 'UnitP';
+      validateattributes(val,{'numeric'},{'real','integer','scalar','>=',0,'<=',4},[class(obj) '.' propName],propName);
+      assert(ismember(val,[0,1,2,4])==1,'nist:edmgConfig:SubfieldSeqLength should be defined as 0,1,2,4');
+      obj.(propName) = val;
+  end
+
+  function obj = set.UnitM(obj, val)
+      propName = 'UnitM';
+      validateattributes(val,{'numeric'},{'real','integer','scalar','>=',0,'<=',16},[class(obj) '.' propName],propName);
+      obj.(propName) = val;
+  end
+
+  function obj = set.UnitN(obj, val)
+      propName = 'UnitN';
+      validateattributes(val,{'numeric'},{'real','integer','scalar','>=',0,'<=',4},[class(obj) '.' propName],propName);
+      assert(ismember(val,1:4)==1,'nist:edmgConfig:SubfieldSeqLength should be defined as 1,2,3 or 4');
+      obj.(propName) = val;
+  end
+
+  function obj = set.UnitRxPerUnitTx(obj, val)
+      propName = 'UnitRxPerUnitTx';
+      validateattributes(val,{'numeric'},{'real','integer','scalar','>=',0,'<=',255},[class(obj) '.' propName],propName);
+      obj.(propName) = val;
+  end
+
   
   function obj = set.PacketType(obj,val)
     propName = 'PacketType';

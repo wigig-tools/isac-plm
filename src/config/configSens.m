@@ -31,10 +31,17 @@ if isfile(cfgPath)
     params = fieldToNum(params, 'windowLen', [1 params.dopplerFftLen], 'step', 1, 'defaultValue', params.dopplerFftLen);
     params = fieldToNum(params, 'windowOverlap', [0 1-eps], 'step', eps, 'defaultValue', 0.5);
     params = fieldToNum(params, 'pulsesCpi', [0 1e3], 'step', 1, 'defaultValue', 16);
-    params = fieldToNum(params, 'thresholdSensingSwitch', [0 1], 'defaultValue', 0);
-    params = fieldToNum(params, 'threshold', [0 1], 'step', eps, 'defaultValue', 0);
-    params = fieldToNum(params, 'csiVariationScheme', {'TRRS-TimeDomain', 'TRRS-FreqDomain'}, 'defaultValue', 'TRRS-TimeDomain');
-    params = fieldToNum(params, 'interpolationScheme', {'previousMeasuremment', 'linear', 'autoRegressive', 'zeroPadding'}, 'defaultValue', 'previousMeasuremment');
+    params = fieldToNum(params, 'thresholdSensing', [0 1], 'defaultValue', 0);
+    if params.thresholdSensing == 1
+        params = fieldToNum(params, 'adaptiveThreshold', [0 1], 'defaultValue', 0);
+        params = fieldToNum(params, 'numTimeDivisions', [1 1e3], 'step', 1, 'defaultValue', 5);
+        params = fieldToNum(params, 'threshold', [0 1], 'step', eps, 'defaultValue', 0);
+        params = fieldToNum(params, 'stepThreshold', [0 0.5], 'step', 0.05, 'defaultValue', 0.1);
+        params = fieldToNum(params, 'percentMeasurement', [0 100], 'step', eps, 'defaultValue',90);
+        params = fieldToNum(params, 'csiVariationScheme', {'EucDistance','TRRS', 'FRRS','Wish'}, 'defaultValue', 'TRRS');
+        params = fieldToNum(params, 'interpolationScheme', {'previousMeasuremment', 'linearInterpolation', 'autoRegressive', 'zeroPadding'}, 'defaultValue', 'previousMeasuremment');
+    end
+
 else
     params = [];
 end

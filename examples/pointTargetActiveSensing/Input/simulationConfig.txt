@@ -1,0 +1,5 @@
+ParameterName	ParameterValue
+nTimeSamp	256
+snrRange	300
+sensPlot	1
+saveRdaMap	1

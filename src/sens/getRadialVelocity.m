@@ -10,5 +10,5 @@ function vTrue = getRadialVelocity(range,ts)
 
 
 dR = range(2:end)-range(1:end-1);
-vTrue = squeeze(dR/ts);
+vTrue = squeeze(dR/(2*ts));
 end

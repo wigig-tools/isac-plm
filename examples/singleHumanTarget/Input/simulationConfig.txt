@@ -1,6 +1,6 @@
 ParameterName	ParameterValue
 debugFlag	0
-pktFormatFlag	0
+psduMode	0
 dopplerFlag	0
 noiseFlag	2
 snrMode	EsNo
@@ -9,6 +9,4 @@ maxNumErrors	1
 maxNumPackets	10
 nTimeSamp	256
 snrRange	20
-plotRangeDopplerMap	1
-plotVelocity	1	
-plotRange	1
+plotSens	1

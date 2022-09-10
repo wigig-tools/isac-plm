@@ -6,7 +6,7 @@ function output = isac(simParams,phyParams,sensParams,channelParams,snrdb, varar
 %   the PHY configuration structure, CH is the channel configuration
 %   structure and SNR is a scalar value
 %
-%   2022 NIST/CTL Steve Blandino, 
+%   2022 NIST/CTL Steve Blandino, Neeraj Varshney
 
 
 p = inputParser;
@@ -16,9 +16,6 @@ addParameter(p,'mcsIndex',defaultMcsIdx,isInteger);
 parse(p,varargin{:});
 
 runSensProcessing = p.Results.mcsIndex ==1; % Run sensing only for first MCS
-
-fieldIndices = nist.edmgFieldIndices(phyParams.cfgEDMG);
-simParams.sigLen = double(fieldIndices.EDMGData(2));
 
 % Account for noise energy in nulls so the SNR is defined per
 % active subcarrier
@@ -36,30 +33,39 @@ packetLoopTimeStart = tic;
 evmSumSTS = zeros(1,numUsers);
 numSuccessPkt = 0;
 csiSens = cell(1, simParams.nTimeSamp);
+codebook = channelParams.codebook;
 
 rng(simParams.snrSeed); % Set Random Seeds - Same random per SNR loop.
 
 t1 = tic;
 for numPkt= 1: simParams.nTimeSamp
     %% Generate SU/MU-MIMO TDL Channel
-    channel.tdMimoChan = channelParams.equivalentChannel(:,:,:,numPkt);
-    channel.fdMimoChan = fft(channel.tdMimoChan,phyParams.fftLength,3);
-
+    
     phyParams.precScaleFactor = 1; %SISO assumption
     phyParams.svdChan = [];        %SISO assumption
 
     %% MIMO Waveform
-    [txDpSigSeq,txDpPsdu] = edmgTx(phyParams.cfgEDMG,simParams);
+    [txSig,txDpPsdu] = edmgTx(phyParams.cfgEDMG,simParams);
 
-    %% Pass multi-path fading channel
-    rxDpSigSeq = getNoisyRxSignal(txDpSigSeq, ...
-        channel.tdMimoChan, simParams.noise);
-
+    if phyParams.cfgEDMG.MsSensing == 1
+        h = channelParams.fullDigChannel(numPkt);
+        [rxSig, phyParams.trnBf{numPkt}] = getPrecodedRxSignal(txSig, h , codebook, phyParams);
+         rxSig = getNoisyRxSignal(rxSig, ...
+            1, simParams.noise);
+    else
+        channel.tdMimoChan = channelParams.fullDigChannel{numPkt};
+        channel.fdMimoChan = fft(channel.tdMimoChan,phyParams.fftLength,3);
+        %% Pass multi-path fading channel
+        rxSig = getNoisyRxSignal(txSig, ...
+            channel.tdMimoChan, simParams.noise);
+    end
     %% Receiver signal processing
     [syncError, rxDpPsdu,detSymbBlks,rxDataGrid,rxDataBlks, cir]  = ...
-        edmgRx(rxDpSigSeq, phyParams, simParams, channel);
-
-    csiSens(numPkt) = cir{1}; %SISO assumption
+        edmgRx(rxSig, phyParams, simParams);
+    
+    if syncError==0
+        csiSens(numPkt) = cir{1}; %SISO assumption
+    end
 
     if syncError
         numPacketErrors = numPacketErrors+1;
@@ -67,40 +73,41 @@ for numPkt= 1: simParams.nTimeSamp
     end
 
     %% Calculate EVM on received symbols
-    [refConstellation,EVM] = edmgReferenceConstellation(phyParams.cfgEDMG);
+   
+    if phyParams.cfgEDMG.MsSensing ~= 1
+        [refConstellation,EVM] = edmgReferenceConstellation(phyParams.cfgEDMG);
+        evmIndiSTS = cell(numUsers,1);
+        for iUser = 1:numUsers
+            for iSTS = 1:phyParams.numSTSVec(iUser)
+                evmIndiSTS{iUser}(iSTS)= 20*log10(mean(step(EVM{iUser}, ...
+                    detSymbBlks{iUser}(:,:,iSTS))/100));
+            end
+        end
 
-    evmIndiSTS = cell(numUsers,1);
-    for iUser = 1:numUsers
-        for iSTS = 1:phyParams.numSTSVec(iUser)
-            evmIndiSTS{iUser}(iSTS)= 20*log10(mean(step(EVM{iUser}, ...
-                detSymbBlks{iUser}(:,:,iSTS))/100));
+        %% Plot Symbol Constellation
+        if simParams.debugFlag == 1
+            if strcmpi(phyParams.phyMode,'OFDM')
+                plotComparisonConstellation(refConstellation,evmIndiSTS,...
+                    rxDataGrid,detSymbBlks,numUsers,phyParams.numSTSVec);
+            else
+                plotComparisonConstellation(refConstellation,evmIndiSTS,...
+                    rxDataBlks,detSymbBlks,numUsers,phyParams.numSTSVec, gcf);
+            end
+        end
+
+        %% Get bit and packet errors per packet per user
+        for iUser = 1:numUsers
+            % Bit error rate
+            bitError = biterr(txDpPsdu{iUser},rxDpPsdu{iUser});
+            numBitErrors(iUser) = numBitErrors(iUser) + bitError;
+
+            % Determine if any bits are in error, i.e. a packet error
+            pktErrDp = any(bitError);
+            numPacketErrors(iUser) = numPacketErrors(iUser) + pktErrDp;
+            % Get EVM
+            evmSumSTS(iUser) = evmSumSTS(iUser)+mean(10.^(evmIndiSTS{iUser}/20));
         end
     end
-
-    %% Plot Symbol Constellation
-    if simParams.debugFlag == 1
-        if strcmpi(phyParams.phyMode,'OFDM')
-            plotComparisonConstellation(refConstellation,evmIndiSTS,...
-                rxDataGrid,detSymbBlks,numUsers,phyParams.numSTSVec);
-        else
-            plotComparisonConstellation(refConstellation,evmIndiSTS,...
-                rxDataBlks,detSymbBlks,numUsers,phyParams.numSTSVec, gcf);
-        end
-    end
-
-    %% Get bit and packet errors per packet per user
-    for iUser = 1:numUsers
-        % Bit error rate
-        bitError = biterr(txDpPsdu{iUser},rxDpPsdu{iUser});
-        numBitErrors(iUser) = numBitErrors(iUser) + bitError;
-
-        % Determine if any bits are in error, i.e. a packet error
-        pktErrDp = any(bitError);
-        numPacketErrors(iUser) = numPacketErrors(iUser) + pktErrDp;
-        % Get EVM
-        evmSumSTS(iUser) = evmSumSTS(iUser)+mean(10.^(evmIndiSTS{iUser}/20));
-    end
-
     numSuccessPkt = numSuccessPkt+1;
     if mod(numSuccessPkt,round(simParams.nTimeSamp/100*10)) ==0 
         t2 = toc(t1);
@@ -110,18 +117,20 @@ end
 
 %% Sensing signal processing
 if ~isempty(sensParams) && runSensProcessing
-    [rEst, vEst, dopplerEst, sensInfo] = sensingProcessing(csiSens, phyParams, sensParams, channelParams.ftm);
-    sensRes = getSensingPerformance(rEst, vEst, channelParams.targetInfo);
-    sensRes.doppler = dopplerEst;
-    sensRes.rEst = rEst;
-    sensRes.vEst = vEst;
-    %% information to plot sensing performance
-    sensInfo.gtRange = channelParams.targetInfo.range(1:simParams.nTimeSamp);
-    sensInfo.gtVelocity = channelParams.targetInfo.velocity(1:simParams.nTimeSamp-1);
+    %% Threshold based sensing measurement and reporting
+    [csiSens, thInfo] = csiReport(csiSens,phyParams,sensParams);    
+    
+    %% Sensing Processing
+    [rEst, vEst, aEst, rda, sensInfo, rflSub] = sensingProcessing(csiSens, phyParams, sensParams, channelParams.ftm, channelParams.codebook);
+    
+    %% Results
+    sensRes = getSensingPerformance(rEst, vEst, channelParams.targetInfo, aEst, phyParams.packetType);
+    sensRes.rda = rda;    
+    sensRes.rflSub = rflSub;
+    
+    %% Info
+    sensInfo = getSensInfo(sensInfo,channelParams,phyParams,simParams,thInfo);
 
-%         res.doppler = info.doppler;
-%         res.targetInfo = targetInfo;
-%         res.info = info;
 else
     sensRes = [];
 end
