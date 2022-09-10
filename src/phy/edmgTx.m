@@ -20,21 +20,12 @@ function [txSigSeq,txPSDU] = edmgTx(cfgEDMG,simParams)
 validateattributes(cfgEDMG,{'nist.edmgConfig'},{'scalar'},mfilename,'EDMG format configuration object');
 
 narginchk(2,6);
-pktFormatFlag = simParams.pktFormatFlag;
-assert(ismember(pktFormatFlag, [0,1]), 'pktFormatFlag should be either 0 or 1.')
+psduMode = simParams.psduMode;
 numBitsPerPkt = cfgEDMG.PSDULength*8;
 numUsers = cfgEDMG.NumUsers;
 
 %% Data processing at Transmitter
-if pktFormatFlag == 0
-    % Select flag for EDMG PPDU transmitted waveform generator
-    %     if cfgEDMG.PSDULength == 0
-    % NDP includes an empty PSDU
-    %         txPSDU = [];
-    % Generate an EDMG PPDU NDP transmitted waveform
-    %         txSigSeq = nist.edmgWaveformGenerator(txPSDU,cfgEDMG);
-    %     else
-    % DP includes a non-empty PSDU
+if psduMode == 0
     delay = simParams.delay;
     zp = simParams.zeroPadding;
     txPSDU = cell(numUsers,1);
@@ -47,7 +38,7 @@ if pktFormatFlag == 0
     % Add delay and ZP to transmitted EDMG PPDU
     numSTSTot = sum(cfgEDMG.NumSpaceTimeStreams,2);
     txSigSeq = [zeros(delay,numSTSTot); txSigSeq; zeros(zp,numSTSTot)];
-elseif pktFormatFlag == 1
+elseif psduMode == 1
     assert(all(cfgEDMG.PSDULength>0), 'cfgEDMG.PSDULength should be > 0');
     % Select flag for EDMG PSDU (data-field only) transmited waveform generator
     txPSDU = cell(numUsers,1);

@@ -10,7 +10,7 @@ function [syncError, rxDpPsdu,detSymbBlks,rxDataGrid,rxDataBlks, cirEst]  = ...
 
 
 %% Receiver processing
-    if simParams.pktFormatFlag == 0
+    if simParams.psduMode == 0
         %Full receiver
         [syncError, rxDpPsdu,detSymbBlks,rxDataGrid,rxDataBlks, ~,cirEst] = ...
             edmgRxFull(rxDpSigSeq, phyParams, simParams);        

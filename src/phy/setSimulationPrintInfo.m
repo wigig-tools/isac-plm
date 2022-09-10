@@ -44,7 +44,7 @@ if ~simuParams.isTest
     
     % Print in commmand line
     fprintf('numMaxParWorks: %d,\tdebugFlag: %d,\tpktFormatFlag(T): %d,\tchanFlag(C): %d,\tmimoFlag(M): %d\n', ...
-        simuParams.numMaxParWorks,simuParams.debugFlag,simuParams.pktFormatFlag,simuParams.chanFlag,simuParams.mimoFlag);
+        simuParams.numMaxParWorks,simuParams.debugFlag,simuParams.psduMode,simuParams.chanFlag,simuParams.mimoFlag);
     
     fprintf('pktFormat: %s,\tphyMode: %s,\tgiType: %s,\tmimoFlag: %s,\tmimoCfg: %s,\tsmTypeNDP: %s,\tsmTypeDP: %s\n', ...
         simuParams.pktFormatStr,phyParams.phyMode,simuParams.giTypeStr,simuParams.mimoFlagStr,simuParams.mimoCfgStr, ...
@@ -73,7 +73,7 @@ if ~simuParams.isTest
         end
     end
     
-    fprintf('simuParams.numRunRealizationSets: %d\n',chanCfg.numRunRealizationSets);
+%    fprintf('simuParams.numRunRealizationSets: %d\n',chanCfg.numRunRealizationSets);
     
     fprintf('snrMode: %s,\tsnrAntNorm: %s\n',simuParams.snrMode,simuParams.snrAntNormStr);
     fprintf('numTxAnt(X): %d,\tnumUsers(U): %d,\tnumSTSVec(S): %s\n',phyParams.numTxAnt,simuParams.numUsers,simuParams.stsCfgStr);
@@ -90,7 +90,7 @@ if ~simuParams.isTest
     
     % Print in results file
     fprintf(simuParams.fileID,'## numMaxParWorks: %d,\tdebugFlag: %d,\tpktFormatFlag(T): %d,\tchanFlag(C): %d,\tmimoFlag(M): %d\r\n', ...
-        simuParams.numMaxParWorks,simuParams.debugFlag,simuParams.pktFormatFlag,simuParams.chanFlag,simuParams.mimoFlag);
+        simuParams.numMaxParWorks,simuParams.debugFlag,simuParams.psduMode,simuParams.chanFlag,simuParams.mimoFlag);
     
     fprintf(simuParams.fileID,'## pktFormat: %s,\tphyMode: %s,\tgiType: %s,\tmimoFlag: %s,\tmimoCfg: %s,\tsmTypeNDP: %s,\tsmTypeDP: %s\r\n', ...
         simuParams.pktFormatStr,phyParams.phyMode,simuParams.giTypeStr,simuParams.mimoFlagStr,simuParams.mimoCfgStr, ...
@@ -119,7 +119,7 @@ if ~simuParams.isTest
         end
     end
     
-    fprintf(simuParams.fileID,'## simuParams.numRunRealizationSets: %d\r\n',chanCfg.numRunRealizationSets);
+%     fprintf(simuParams.fileID,'## simuParams.numRunRealizationSets: %d\r\n',chanCfg.numRunRealizationSets);
     
     fprintf(simuParams.fileID,'## snrMode: %s,\tsnrAntNor: %s\r\n', ...
         simuParams.snrMode, simuParams.snrAntNormStr);

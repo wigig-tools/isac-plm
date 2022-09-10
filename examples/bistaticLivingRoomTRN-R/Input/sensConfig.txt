@@ -1,0 +1,6 @@
+pri	0.0005
+dopplerFftLen	128
+window	blackmanharris
+windowLen	32
+windowOverlap	0
+pulsesCpi	32

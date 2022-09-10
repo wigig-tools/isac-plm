@@ -1,0 +1,10 @@
+pri	0.0005
+dopplerFftLen	512
+window	rect
+windowLen	16
+windowOverlap	0
+pulsesCpi	64
+thresholdSensing	1
+threshold	0.001
+csiVariationScheme	TRRS
+interpolationScheme	previousMeasuremment

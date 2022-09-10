@@ -43,30 +43,68 @@ if nargin == 1
         indHeader = getEDMGIndices(cfgEDMG,'DMG-Header');
         indEDMGHeaderA = getEDMGIndices(cfgEDMG,'EDMG-Header-A');
         indEDMGSTF = getEDMGIndices(cfgEDMG,'EDMG-STF');
-        indEDMGCEF = getEDMGIndices(cfgEDMG,'EDMG-CEF');
-        indEDMGHeaderB = getEDMGIndices(cfgEDMG,'EDMG-Header-B');
-        indData = getEDMGIndices(cfgEDMG,'EDMG-Data');
-%         indAGC = getEDMGIndices(cfgEDMG,'EDMG-AGC');
-%         indAGCsf = getEDMGIndices(cfgEDMG,'EDMG-AGCSubfields');
-%         indTRN = getEDMGIndices(cfgEDMG,'EDMG-TRN');
-%         indTRNSF = getEDMGIndices(cfgEDMG,'EDMG-TRNSubfields');
-%         indTRNCE = getEDMGIndices(cfgEDMG,'EDMG-TRNCE');
-        indices = struct(...
-            'DMGSTF',         indSTF, ...
-            'DMGCE',          indCEF, ...
-            'DMGHeader',      indHeader, ...
-            'EDMGHeaderA',    indEDMGHeaderA, ...
-            'EDMGSTF',        indEDMGSTF, ...
-            'EDMGCEF',        indEDMGCEF, ...
-            'EDMGHeaderB',    indEDMGHeaderB, ...
-            'EDMGData',       indData ...
-            ...%'DMGAGC',         indAGC, ...
-            ...%'DMGAGCSubfields',indAGCsf, ...
-            ...%'DMGTRN',         indTRN, ...
-            ...%'DMGTRNCE',       indTRNCE,...
-            ...%'DMGTRNSubfields',indTRNSF
-            );       
+        if cfgEDMG.MsSensing == 0
+            indEDMGCEF = getEDMGIndices(cfgEDMG,'EDMG-CEF');
+            indEDMGHeaderB = getEDMGIndices(cfgEDMG,'EDMG-Header-B');
+            indData = getEDMGIndices(cfgEDMG,'EDMG-Data');
+
+            indices = struct(...
+                'DMGSTF',         indSTF, ...
+                'DMGCE',          indCEF, ...
+                'DMGHeader',      indHeader, ...
+                'EDMGHeaderA',    indEDMGHeaderA, ...
+                'EDMGSTF',        indEDMGSTF, ...
+                'EDMGCEF',        indEDMGCEF, ...
+                'EDMGHeaderB',    indEDMGHeaderB, ...
+                'EDMGData',       indData ...
+                ...%'DMGAGC',         indAGC, ...
+                ...%'DMGAGCSubfields',indAGCsf, ...
+                ...%'DMGTRN',         indTRN, ...
+                ...%'DMGTRNCE',       indTRNCE,...
+                ...%'DMGTRNSubfields',indTRNSF
+                );
+        elseif cfgEDMG.MsSensing == 1
+            indSync = getEDMGIndices(cfgEDMG,'EDMG-SYNC');
+            indTRN = getEDMGIndices(cfgEDMG,'EDMG-TRN');
+            indTRNUNITS = getEDMGIndices(cfgEDMG,'EDMG-TRNUNIT');
+            indTRNSubfields = getEDMGIndices(cfgEDMG,'EDMG-TRNSubfields');
+            indTRNUnitP = getEDMGIndices(cfgEDMG,'EDMG-TRNUnitP');
+%             indTRNUNITS
+%         elseif strcmpi(fieldType, 'EDMG-TRNSubfields')
+%     agcInd = getEDMGIndicesRaw(format,'EDMG-AGC'); % Previous field
+%     fieldStart = double(agcInd(2))+1;    
+%     if strcmp(phyType(format),'OFDM')
+%         NumCESamples = 1152*(3/2);
+%         fieldLength = 640*(3/2);
+%     else % Control/SC
+%         NumCESamples = 1152;
+%         fieldLength = 640;
+%     end
+%     if wlan.internal.isBRPPacket(format)
+%         numTRN = format.TrainingLength;
+%     else
+%         numTRN = 0;
+%     end
+%     indStart = fieldStart+(NumCESamples*ceil((1:numTRN).'/4))+(0:fieldLength:(fieldLength*numTRN-1)).';
+%     indEnd = indStart+fieldLength-1; = getEDMGIndices(cfgEDMG,'EDMG-TRNUNIT');
+
+            indices = struct(...
+                'DMGSTF',         indSTF, ...
+                'DMGCE',          indCEF, ...
+                'DMGHeader',      indHeader, ...
+                'EDMGHeaderA',    indEDMGHeaderA, ...
+                'EDMGSTF',        indEDMGSTF, ...
+                'EDMGSYNC',       indSync, ...
+                'EDMGTRN',        indTRN, ...
+                'EDMGTRNUNITS',   indTRNUNITS, ...                
+                'TRNSubfields', indTRNSubfields, ...
+                'TRNUnitP',indTRNUnitP ...
+                );
+
+        end
         
+%         indAGC = getEDMGIndices(cfgEDMG,'EDMG-AGC');
+%         indAGCsf = getEDMGIndices(cfgEDMG,'EDMG-AGCSubfields');       
     end
     
 else
@@ -165,11 +203,7 @@ elseif strcmpi(fieldType, 'EDMG-STF')
         case 'OFDM'
             fieldLength = 3840;
         otherwise % SC
-%             if format.NumUsers==1
-%                 fieldLength  =0;
-%             elseif format.NumUsers>1
-                fieldLength  =2432;
-%             end
+            fieldLength = 2432;
     end
     indEnd = indStart+fieldLength-1;
 
@@ -184,11 +218,7 @@ elseif strcmpi(fieldType, 'EDMG-CEF')
         case 'OFDM'
             fieldLength = 704*N_EDMG_CEF;
         otherwise % SC
-%             if format.NumUsers==1
-%                 fieldLength  = 0;
-%             elseif format.NumUsers>1
-                fieldLength  = 1152 +1280*(N_EDMG_CEF-1);
-%             end
+            fieldLength  = 1152 +1280*(N_EDMG_CEF-1);
     end
     indEnd = indStart+fieldLength-1;
     
@@ -264,37 +294,152 @@ elseif strcmpi(fieldType, 'EDMG-Data')
 %     end
 %     indStart = fieldStart+(0:fieldLength:(fieldLength*numTRN)-1).';
 %     indEnd = indStart+fieldLength-1;
+elseif strcmpi(fieldType, 'EDMG-SYNC')
+    prevInd = getEDMGIndicesRaw(format,'EDMG-STF'); % Previous field
+    indStart = double(prevInd(2))+1;
+    TRN_BL = 128;
+    fieldLength  = 18 * TRN_BL *format.NumContiguousChannels*format.NumUsers;
+    indEnd = indStart+fieldLength-1;
+    
 elseif strcmpi(fieldType, 'EDMG-TRN')
 %     prevInd = getEDMGIndicesRaw(format,'EDMG-AGC'); % Previous field
-    prevInd = getEDMGIndicesRaw(format,'EDMG-Data'); % Previous field
+    prevInd = getEDMGIndicesRaw(format,'EDMG-SYNC'); % Previous field
     indStart = double(prevInd(2))+1;
-    if wlan.internal.isBRPPacket(format)
+    if wlan.internal.isBRPPacket(format) && format.MsSensing == 0
+        prevInd = getEDMGIndicesRaw(format,'EDMG-Data'); % Previous field
+        indStart = double(prevInd(2))+1;
         numTRNUnits = format.TrainingLength/4;
+        if strcmp(phyType(format),'OFDM')
+            fieldLength = (3/2)*(640*4+1152)*numTRNUnits;
+        else % Control/SC
+            fieldLength = (640*4+1152)*numTRNUnits;
+        end
+    elseif format.MsSensing == 1
+        sfLen = format.SubfieldSeqLength*6;
+        numTRNUnits = format.TrainingLength;
+        switch format.PacketType
+            case 'TRN-T'
+                fieldLength = sfLen*format.UnitP + numTRNUnits*sfLen*(format.UnitP+ format.UnitM+1);
+            case 'TRN-TR'
+                fieldLength = sfLen*format.UnitP + sfLen*(format.UnitP+format.UnitM+1)*(format.UnitRxPerUnitTx+1)*numTRNUnits;
+            case 'TRN-R'
+                fieldLength = 10*sfLen*numTRNUnits;
+        end
     else
-        numTRNUnits = 0;
+        fieldLength = 0;
     end
-    if strcmp(phyType(format),'OFDM')
-        fieldLength = (3/2)*(640*4+1152)*numTRNUnits;
-    else % Control/SC
-        fieldLength = (640*4+1152)*numTRNUnits;
-    end
+    
     indEnd = indStart+fieldLength-1;
-% elseif strcmpi(fieldType, 'EDMG-TRNSubfields')
-%     agcInd = getEDMGIndicesRaw(format,'EDMG-AGC'); % Previous field
-%     fieldStart = double(agcInd(2))+1;    
-%     if strcmp(phyType(format),'OFDM')
-%         NumCESamples = 1152*(3/2);
-%         fieldLength = 640*(3/2);
-%     else % Control/SC
-%         NumCESamples = 1152;
+elseif strcmpi(fieldType, 'EDMG-TRNUNIT')
+    prevInd = getEDMGIndicesRaw(format,'EDMG-SYNC'); % Previous field
+    fieldStart = double(prevInd(2))+1; 
+    if format.MsSensing == 0
+        if strcmp(phyType(format),'OFDM')
+            NumCESamples = 1152*(3/2);
+            fieldLength = 640*(3/2);
+        else % Control/SC
+            NumCESamples = 1152;
+            fieldLength = 640;
+        end
+        if wlan.internal.isBRPPacket(format)
+            numTRN = format.TrainingLength;
+        else
+            numTRN = 0;
+        end
+        indStart = fieldStart+(NumCESamples*ceil((1:numTRN).'/4))+(0:fieldLength:(fieldLength*numTRN-1)).';
+    else
+        switch format.PacketType
+            case 'TRN-T'
+                NumCESamples = format.UnitP * format.SubfieldSeqLength *6;
+                fieldLength  = (format.UnitM+1) * format.SubfieldSeqLength *6;
+                TRNLen = NumCESamples+fieldLength;
+
+            case 'TRN-TR'
+                NumCESamples = format.UnitP * format.SubfieldSeqLength *6;
+                fieldLength  = ((format.UnitM+1) * format.SubfieldSeqLength *6);
+                TRNLen = (NumCESamples+fieldLength)*(format.UnitRxPerUnitTx+1)*format.TrainingLength;
+
+            case 'TRN-R'
+                TRNLen  = 10 * format.SubfieldSeqLength *6;
+        end
+        indStart = (fieldStart:TRNLen:fieldStart+(TRNLen-1)*format.TrainingLength).';
+        indEnd = indStart+TRNLen-1;
+    end
+elseif strcmpi(fieldType, 'EDMG-TRNSubfields')
+    prevInd = getEDMGIndicesRaw(format,'EDMG-SYNC'); % Previous field
+    fieldStart = double(prevInd(2))+1;
+    SubFieldLen =  format.SubfieldSeqLength *6;
+
+    switch format.PacketType
+        case 'TRN-T'
+            NumCESamples = format.UnitP * SubFieldLen;
+            fieldLength  = (format.UnitM+1) * SubFieldLen;
+            TRNLen = NumCESamples+fieldLength;
+            indStart = (fieldStart:SubFieldLen:(fieldStart+TRNLen*(format.TrainingLength)-1)).';
+            indStart = reshape(indStart, [], format.TrainingLength);
+            indStart = reshape(indStart(format.UnitP+1:end,:), [],1);
+            indEnd = indStart+SubFieldLen-1;
+ 
+        case 'TRN-TR'
+            NumCESamples = format.UnitP * SubFieldLen;
+            fieldLength  = ((format.UnitM+1) * SubFieldLen);
+            TRNLen = (NumCESamples+fieldLength)*(format.UnitRxPerUnitTx+1)*format.TrainingLength;
+            indStart = (fieldStart:SubFieldLen:(fieldStart+TRNLen-1)).';
+            indStart = reshape(indStart.', [], format.TrainingLength*(format.UnitRxPerUnitTx+1));
+            indStart = reshape(indStart(format.UnitP+1:end,:), [],1);
+
+        case 'TRN-R'
+            indStart = (fieldStart:SubFieldLen:(fieldStart+SubFieldLen*(10*format.TrainingLength-1))).';
+            indEnd = indStart+SubFieldLen-1;
+    end
+
+
+elseif strcmpi(fieldType, 'EDMG-TRNUnitP')
+    prevInd = getEDMGIndicesRaw(format,'EDMG-SYNC'); % Previous field
+    fieldStart = double(prevInd(2))+1;
+    SubFieldLen =  format.SubfieldSeqLength *6;
+
+    switch format.PacketType
+        case 'TRN-T'
+            NumCESamples = format.UnitP * SubFieldLen;
+            fieldLength  = (format.UnitM+1) * SubFieldLen;
+            TRNLen = NumCESamples+fieldLength;
+            indStart = (fieldStart:SubFieldLen:(fieldStart+TRNLen*(format.TrainingLength)-1)).';
+            indStart = reshape(indStart, [], format.TrainingLength);
+            indStart = reshape(indStart(1:format.UnitP,:), [],1);
+            indEnd = indStart+SubFieldLen-1;
+ 
+        case 'TRN-TR'
+            NumCESamples = format.UnitP * SubFieldLen;
+            fieldLength  = ((format.UnitM+1) * SubFieldLen);
+            TRNLen = (NumCESamples+fieldLength)*(format.UnitRxPerUnitTx+1)*format.TrainingLength;
+            indStart = (fieldStart:SubFieldLen:(fieldStart+TRNLen-1)).';
+            indStart = reshape(indStart.', [], format.TrainingLength*(format.UnitRxPerUnitTx+1));
+            indStart = reshape(indStart(format.UnitP+1:end,:), [],1);
+
+        case 'TRN-R'
+            indStart = [];
+            indEnd = [];
+    end
+
+
+
+
+
+
+    %         NumCESamples = 1152;
 %         fieldLength = 640;
-%     end
 %     if wlan.internal.isBRPPacket(format)
 %         numTRN = format.TrainingLength;
 %     else
 %         numTRN = 0;
 %     end
 %     indStart = fieldStart+(NumCESamples*ceil((1:numTRN).'/4))+(0:fieldLength:(fieldLength*numTRN-1)).';
+%     indEnd = indStart+fieldLength-1;
+
+
+
+
 %     indEnd = indStart+fieldLength-1;
 % else % strcmpi(fieldType, 'DMG-TRNCE')
 %     agcInd = getEDMGIndicesRaw(format,'EDMG-AGC'); % Previous field

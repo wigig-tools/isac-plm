@@ -1,0 +1,12 @@
+ParameterName	ParameterValue
+debugFlag	0
+psduMode	0
+dopplerFlag	0
+noiseFlag	2
+snrMode	EsNo
+snrAntNormFlag	0
+maxNumErrors	1
+maxNumPackets	10
+nTimeSamp	256
+snrRange	20
+sensPlot	1

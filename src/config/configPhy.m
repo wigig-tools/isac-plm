@@ -72,11 +72,18 @@ params = cell2struct(paramsCell(2,:), paramsCell(1,:), 2);
 
 %% Check validity
 if isIsac
-    params = fieldToNum(params, 'phyMode', {'SC', 'OFDM'}, 'defaultValue', 'SC');
+    defaultPhyMode = 'SC';
+    defaultLenPsduByt = 0;
+    defaultSoftCsiFlag = 0;
 else
-    params = fieldToNum(params, 'phyMode', {'SC', 'OFDM'}, 'defaultValue', 'OFDM');
+    defaultPhyMode = 'OFDM';
+    defaultLenPsduByt = pow2(12);
+    defaultSoftCsiFlag = 1;
 end
-params = fieldToNum(params, 'lenPsduByt', [0 pow2(16)], 'step', eps, 'defaultValue', pow2(12));
+
+params = fieldToNum(params, 'phyMode', {'SC', 'OFDM'}, 'defaultValue', defaultPhyMode);
+params = fieldToNum(params, 'packetType', {'TRN-R', 'TRN-T','TRN-TR'},'defaultValue', 'TRN-R');
+params = fieldToNum(params, 'lenPsduByt', [0 pow2(16)], 'step', eps, 'defaultValue', defaultLenPsduByt);
 params = fieldToNum(params, 'giType', {'Short', 'Normal', 'Long'}, 'defaultValue', 'Short');
 params = fieldToNum(params, 'numSTSVec', [1 8], 'step', 1, 'defaultValue', 1);
 params = fieldToNum(params, 'smTypeNDP', {'Hadamard', 'Fourier', 'Custom', 'Direct'}, 'defaultValue', 'Direct');
@@ -90,12 +97,17 @@ params = fieldToNum(params, 'analogBeamforming', {'maxAllUserCapacity', 'maxMinA
 params = fieldToNum(params, 'dynamicBeamNumber', [-1 20],'step', eps, 'defaultValue', 0);
 params = fieldToNum(params, 'processFlag', [0 5], 'step', 1, 'defaultValue', 0);
 params = fieldToNum(params, 'symbOffset', [0 1], 'step', eps, 'defaultValue', 0.75);
-if isIsac
-    params = fieldToNum(params, 'softCsiFlag', [0 1], 'step', 1, 'defaultValue', 0);
-else
-    params = fieldToNum(params, 'softCsiFlag', [0 1], 'step', 1, 'defaultValue', 1);
-end
+params = fieldToNum(params, 'softCsiFlag', [0 1], 'step', 1, 'defaultValue', defaultSoftCsiFlag);
 params = fieldToNum(params, 'ldpcDecMethod', {'norm-min-sum'}, 'defaultValue', 'norm-min-sum');
+params = fieldToNum(params, 'msSensing', [0 1], 'defaultValue', 0);
+if params.msSensing ==1
+    params = fieldToNum(params, 'unitP', [0 1 2 4],  'defaultValue', 2);
+    params = fieldToNum(params, 'unitM', [0 2^4-1], 'step', 1, 'defaultValue', 5);
+    params = fieldToNum(params, 'unitN', [1 2 3 4 8], 'defaultValue', 3);
+    params = fieldToNum(params, 'unitRxPerUnitTx', [0 2^8-1], 'step', 1, 'defaultValue', 0);
+    params = fieldToNum(params, 'subfieldSeqLength', [128 256 64], 'defaultValue', 128);
+    params = fieldToNum(params, 'trainingLength', [0 2^8-1], 'step', 1, 'defaultValue', 10);
+end
 
 end
 

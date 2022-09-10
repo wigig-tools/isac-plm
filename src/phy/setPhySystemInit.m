@@ -25,6 +25,16 @@ cfgEDMG.PSDULength = phyParams.lenPsduByt * ones(1,phyParams.numUsers);
 cfgEDMG.ScramblerInitialization = randi(127,1,phyParams.numUsers);
 cfgEDMG.MCS = phyParams.mcsMU(1,:);         % Force to OFDM
 
+% TRN 
+cfgEDMG.PacketType = phyParams.packetType;
+if phyParams.msSensing
+    cfgEDMG.UnitP = phyParams.unitP;
+    cfgEDMG.UnitM = phyParams.unitM;
+    cfgEDMG.UnitN = phyParams.unitN;
+    cfgEDMG.SubfieldSeqLength = phyParams.subfieldSeqLength;
+    cfgEDMG.TrainingLength = phyParams.trainingLength;
+end
+
 % Setup MIMO for cfgNDP and cfgEDMG
 cfgNDP.NumTransmitAntennas = phyParams.numTxAnt;
 cfgNDP.NumSpaceTimeStreams = phyParams.numSTSVec;
@@ -34,6 +44,12 @@ cfgEDMG.NumTransmitAntennas = phyParams.numTxAnt;
 cfgEDMG.NumSpaceTimeStreams = phyParams.numSTSVec;
 cfgEDMG.PreambleSpatialMappingType = phyParams.smTypeDP;  % 'Data';    
 cfgEDMG.SpatialMappingType = phyParams.smTypeDP;
+cfgEDMG.MsSensing  = phyParams.msSensing;
+if cfgEDMG.MsSensing == 1
+    phyParams.lenPsduByt = 0;
+    cfgEDMG.PSDULength = cfgEDMG.PSDULength*0;
+end
+
 
 [phyParams.phyInfo,phyParams.phyChara] = edmgPHYInfoCharacteristics(cfgEDMG);
 

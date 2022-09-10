@@ -18,7 +18,7 @@ if ~iscell(az)
     sv = steeringAll(azId,elId,:);
     svReshape=reshape(sv,1,numel(azId)*numel(elId),[]);
     sv=squeeze(svReshape(1,1:numel(azId)+1:end,:)).';
-    sv = shiftdim(reshape(sv, [], size(azId,1), size(azId,2)),1);
+%     sv = shiftdim(reshape(sv, [], size(azId,1), size(azId,2)),1);
 else
     n = length(az);
     svTime = cell(n,1);

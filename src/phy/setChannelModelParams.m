@@ -9,20 +9,24 @@ function [channelParams,varargout] = setChannelModelParams(channelParams, sensPa
 %#codegen
 
 p = inputParser;
-channelParams.tgayChannel = [];
-channelParams.nistChan = [];
-channelParams.numRunRealizationSets = 1;
-chanData = [];
 
 switch channelParams.chanModel
     %% AWGN only channel
     case 'AWGN'
+        channelParams.tgayChannel = [];
+        channelParams.nistChan = [];
+        channelParams.numRunRealizationSets = 1;
+        chanData = [];
         channelParams.MdlStr = 'AWGN';
         channelParams.EnvStr = [];
         channelParams.numTaps = 0;
         
     %% Randomn Rayleigh multi-path fading
     case 'Rayleigh'
+        channelParams.tgayChannel = [];
+        channelParams.nistChan = [];
+        channelParams.numRunRealizationSets = 1;
+        chanData = [];
         channelParams.MdlStr = 'RandRayl';
         channelParams.EnvStr  = 'NA';
         channelParams.tdlType = channelParams.tdlType; % 'Impulse';    % 'Sinc';
@@ -32,6 +36,10 @@ switch channelParams.chanModel
     
     %% MatlabTGay channel model
     case 'MatlabTGay'
+        channelParams.tgayChannel = [];
+        channelParams.nistChan = [];
+        channelParams.numRunRealizationSets = 1;
+        chanData = [];
         phyParams  = varargin{1};
         assert(phyParams.numUsers==1,'MatlabTGay channel supports single user only (numUsers=1).');
 
@@ -65,6 +73,10 @@ switch channelParams.chanModel
     
     %% NIST QD Channel configuration
     case 'NIST'
+        channelParams.tgayChannel = [];
+        channelParams.nistChan = [];
+        channelParams.numRunRealizationSets = 1;
+        chanData = [];
         msgStr = 'The feature of using NIST 60GHz QD channel model requires additional datasets from NIST.\n';
         warning(msgStr);
         addRequired(p,'phyParams');
@@ -247,43 +259,46 @@ switch channelParams.chanModel
             numRunRealizationSets = numUseRealizationSets;
         end
         assert(numRunRealizationSets>0,'numRunRealizationSets should be > 0.');
-    case 'sensNIST'
+    case 'sensing'
         addRequired(p,'phyParams');
-        addRequired(p,'simuParams');
+        addRequired(p,'simParams');
         addRequired(p,'nodeParams');
         parse(p, varargin{:});
         phyParams  = varargin{1};
         simParams = varargin{2};
-        nodeParams  = varargin{3}; %#ok<NASGU> 
-
-        %% Phase Antenna Array
-        paaInfo = paaInit('Nodes', phyParams.numUsers+1, 'NumPaa', ones(1, phyParams.numUsers+1));
-
-        %% User mobility
-        userMobility = userMobilityInit(phyParams.numUsers+1,simParams.nTimeSamp);
-
-        %% Config Channel
-        channelInfo = channelDependentParams(simParams,paaInfo,userMobility); 
-        channelParams = catstruct(channelInfo, channelParams); 
+        nodeParams  = varargin{3};
 
         %% Compute antenna codebook
-        paaInfo = loadCodebook(paaInfo);
+        codebook = loadCodebook(nodeParams.Codebook);
 
         %% Load Channel
-        [rawMultiUserChannel, rawTargetInfo] = loadChannel(channelParams, simParams.scenarioPath);
-        [H, delay] = getMultiUserChannel(rawMultiUserChannel,paaInfo,simParams.nTimeSamp);
-        fullDigChannel  = getInterpChannel(H,delay, channelParams.numTaps, phyParams.fs*phyParams.cfgEDMG.NumContiguousChannels);
-        chanData = analogBeamforming(fullDigChannel, paaInfo,phyParams, 'beamformingMethod', 'noBeamforming');
-        chanData = chanData./sqrt(sum(sum(sum(abs(chanData).^2,1),2),3));
-        channelParams.equivalentChannel = chanData;
-        if ~isempty(sensParams)
-            channelParams.targetInfo = getTargetInfo(rawTargetInfo,sensParams.pri);
-            channelParams.ftm = getFtm(rawMultiUserChannel);
+        [loadCache, cachePath] = checkCacheValidity(simParams.scenarioPath);
+
+        if loadCache
+            cache = load(cachePath);
+            channelParams = cache.channelParams;
+        else
+            [rawMultiUserChannel, rawTargetInfo] = loadChannel(simParams.scenarioPath, 'paa', [nodeParams.NumPaa]);
+            [H, delay] = getMultiUserChannel(rawMultiUserChannel,codebook,simParams.nTimeSamp, 'paa', [nodeParams.NumPaa]);
+            fullDigChannel  = getInterpChannel(H,delay, phyParams.fs*phyParams.cfgEDMG.NumContiguousChannels);
+            switch channelParams.normalization
+                case 'none'
+                    channelParams.fullDigChannel = fullDigChannel;
+                case 'packet'
+                     channelParams.fullDigChannel = cellfun(@(x) x/sqrt(sum(sum(sum(abs(x).^2)))), fullDigChannel, 'UniformOutput', false);
+            end
+
+            channelParams.codebook = codebook;
+
+            if ~isempty(sensParams)
+                channelParams.targetInfo = getTargetInfo(rawTargetInfo,sensParams.pri);
+                channelParams.ftm = getFtm(rawMultiUserChannel);
+            end
+            save(cachePath, "channelParams", '-v7.3')
         end
+
     otherwise
         error('chanModel is not supported.');
 end
-
-varargout{1} = chanData;
 
 end

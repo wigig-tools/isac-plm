@@ -130,73 +130,7 @@ defaultParams = struct('NumPackets', 1, ...
 if nargin==2
     useParams = defaultParams;
 else          
-    % Extract each P-V pair
-%     if isempty(coder.target) % Simulation path
-%         p = inputParser;
-% 
-%         % Get values for the P-V pair or set defaults for the optional arguments
-%         addParameter(p,'NumPackets',defaultParams.NumPackets);
-%         addParameter(p,'IdleTime',defaultParams.IdleTime);
-%         addParameter(p,'ScramblerInitialization',defaultParams.ScramblerInitialization);
-%         addParameter(p,'WindowTransitionTime',defaultParams.WindowTransitionTime);
-%         % Parse inputs
-%         parse(p,varargin{:});
-% 
-%         useParams = p.Results;
-%     else % Codegen path
-%         pvPairs = struct('NumPackets', uint32(0), ...
-%                          'IdleTime', uint32(0), ...
-%                          'ScramblerInitialization', uint32(0), ...
-%                          'WindowTransitionTime', uint32(0));
-% 
-%         % Select parsing options
-%         popts = struct('PartialMatching', true);
-% 
-%         % Parse inputs
-%         pStruct = coder.internal.parseParameterInputs(pvPairs,popts,varargin{:});
-% 
-%         % Get values for the P-V pair or set defaults for the optional arguments
-%         useParams = struct;
-%         useParams.NumPackets = coder.internal.getParameterValue(pStruct.NumPackets,defaultParams.NumPackets,varargin{:});
-%         useParams.IdleTime = coder.internal.getParameterValue(pStruct.IdleTime,defaultParams.IdleTime,varargin{:});
-%         useParams.ScramblerInitialization = coder.internal.getParameterValue(pStruct.ScramblerInitialization,defaultParams.ScramblerInitialization,varargin{:});
-%         useParams.WindowTransitionTime = coder.internal.getParameterValue(pStruct.WindowTransitionTime,defaultParams.WindowTransitionTime,varargin{:});
-%     end
-% 
-%     % Validate each P-V pair
-%     % Validate useParams.NumPackets
-%     validateattributes(useParams.NumPackets,{'numeric'},{'scalar','integer','>=',0},mfilename,'''NumPackets'' value');
-%     % Validate useParams.IdleTime
-%     validateattributes(useParams.IdleTime,{'numeric'},{'scalar','real','>=',0},mfilename,'''IdleTime'' value');
-%     if isEDMG
-%         minIdleTime = 1e-6;
-%     else % S1G, VHT, HT, non-HT
-%         minIdleTime = 2e-6;
-%     end
-%     coder.internal.errorIf((useParams.IdleTime > 0) && (useParams.IdleTime < minIdleTime),'nist:wlanWaveformGenerator:InvalidIdleTimeValue',sprintf('%1.0d',minIdleTime));
-%     % Validate scramblerInit
-%     if isEDMG && any(useParams.ScramblerInitialization~=93)
-%         if wlan.internal.isDMGExtendedMCS(cfgFormat.MCS)
-%             % At least one of the initialization bits must be
-%             % non-zero, therefore determine if the pseudorandom
-%             % part can be 0 given the extended MCS and PSDU length.
-%             if all(wlan.internal.dmgExtendedMCSScramblerBits(cfgFormat)==0)
-%                 minScramblerInit = 1; % Pseudorandom bits cannot be all zero
-%             else
-%                 minScramblerInit = 0; % Pseudorandom bits can be all zero
-%             end
-%             coder.internal.errorIf(any((useParams.ScramblerInitialization<minScramblerInit) | (useParams.ScramblerInitialization>31)),'wlan:wlanWaveformGenerator:InvalidScramblerInitialization','SC extended MCS',minScramblerInit,31);
-%         else
-%             coder.internal.errorIf(any((useParams.ScramblerInitialization<1) | (useParams.ScramblerInitialization>127)),'wlan:wlanWaveformGenerator:InvalidScramblerInitialization','SC/OFDM',1,127);
-%         end
-%         overrideObjectScramInit = true;
-%     end
-%     % Validate WindowTransitionTime
-%     if isEDMGOFDM 
-%         % Set maximum limits for windowing transition time based on bandwidth and format
-%         maxWinTransitTime = 9.6969e-08; % Seconds
-%         validateattributes(useParams.WindowTransitionTime,{'numeric'},{'real','scalar','>=',0,'<=',maxWinTransitTime},mfilename,'''WindowTransitionTime'' value');
-%     end 
+   
 end
 windowing = isEDMGOFDM && useParams.WindowTransitionTime > 0;
 
@@ -263,6 +197,7 @@ numTxAnt = cfgEDMG.NumTransmitAntennas;    % To be checked
 numPktSamples = s.NumPPDUSamples(1);    % Modified to use first column, To be checked
 
 nonedmgFields = [wlan.internal.dmgSTF(cfgEDMG); wlan.internal.dmgCE(cfgEDMG)];
+trn = [];
 if isEDMGOFDM
     % In OFDM PHY preamble fields are resampled to OFDM rate
     nonedmgPreamble = edmgTDCyclicShift(wlan.internal.dmgResample(...
@@ -271,8 +206,15 @@ if isEDMGOFDM
     % No brfield
 else
     % isEDMGSC
-    nonedmgPreamble = edmgTDCyclicShift(nonedmgFields, cfgEDMG); % Add by snb28
-    edmgPreamble = [edmgSTF(cfgEDMG); edmgCE(cfgEDMG)];   % Add by snb28
+    if cfgEDMG.MsSensing == 0
+        nonedmgPreamble = edmgTDCyclicShift(nonedmgFields, cfgEDMG);
+        edmgPreamble = [edmgSTF(cfgEDMG); edmgCE(cfgEDMG)];
+    else
+        nonedmgPreamble = edmgTDCyclicShift(nonedmgFields, cfgEDMG);
+        edmgPreamble = edmgSTF(cfgEDMG);
+        sync = edmgMssSync(cfgEDMG);
+        trn = edmgTrn(cfgEDMG);
+    end
     % No brfield
 end
 
@@ -339,32 +281,36 @@ for i = 1:useParams.NumPackets
 
     % Construct packet from preamble and data, without brfields
     if isEDMGSC
-        if sum(cfgEDMG.NumSpaceTimeStreams)>1
-            switch cfgEDMG.SpatialMappingType
-                case 'Custom'
-                    if cfgEDMG.NumUsers==1
-                        % SC SU-MIMO
-                        data = nist.edmgData(psdu,cfgEDMG);
-                        packet = [preamble; data];
-                    else
-                        % In SC MU-MIMO preamble and data are filter through a time domain
-                        % precoder and the precoded sequence is stored in data.
-                        data = nist.edmgData(psdu,cfgEDMG,'preamble',edmgPortion);
-                        packet = [nonedmgPortion; data];
-                    end
-                case 'Direct'
-                    if all(cellfun(@isempty,psdu))
-                        data = [];
-                    else
-                        data = nist.edmgData(psdu,cfgEDMG);
-                    end
-                    % For channel sounding
-                    packet = [preamble; data];         % without brfields
+        if cfgEDMG.MsSensing == 1 %No data
+            packet = [preamble; sync; trn];
+        else
+            if sum(cfgEDMG.NumSpaceTimeStreams)>1
+                switch cfgEDMG.SpatialMappingType
+                    case 'Custom'
+                        if cfgEDMG.NumUsers==1
+                            % SC SU-MIMO
+                            data = nist.edmgData(psdu,cfgEDMG);
+                            packet = [preamble; data];
+                        else
+                            % In SC MU-MIMO preamble and data are filter through a time domain
+                            % precoder and the precoded sequence is stored in data.
+                            data = nist.edmgData(psdu,cfgEDMG,'preamble',edmgPortion);
+                            packet = [nonedmgPortion; data];
+                        end
+                    case 'Direct'
+                        if all(cellfun(@isempty,psdu))
+                            data = [];
+                        else
+                            data = nist.edmgData(psdu,cfgEDMG);
+                        end
+                        % For channel sounding
+                        packet = [preamble; data];         % without brfields
 
+                end
+            elseif sum(cfgEDMG.NumSpaceTimeStreams) == 1
+                data = nist.edmgData(psdu,cfgEDMG);
+                packet = [preamble; data];         % without brfields
             end
-        elseif sum(cfgEDMG.NumSpaceTimeStreams) == 1
-            data = nist.edmgData(psdu,cfgEDMG);
-            packet = [preamble; data];         % without brfields
         end
     elseif isEDMGOFDM
         if all(cellfun(@isempty,psdu))
@@ -407,7 +353,7 @@ for i = 1:useParams.NumPackets
         end
     else
         % Construct entire waveform
-        numPktSamples = length(packet);% +++SB define values based on scenarios
+        numPktSamples = length(packet);
         txWaveform((i-1)*pktWithIdleLength+(1:numPktSamples),:) = packet;
     end
 end

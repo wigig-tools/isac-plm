@@ -1,8 +1,8 @@
-function [Hmat, Delaymat] = getMultiUserChannel(Hraw, paaInfo, nTimeSample, varargin)
+function [mimoMat, delayMat] = getMultiUserChannel(Hraw, paaInfo, nTimeSample, varargin)
 %%GETMULTIUSERCHANNEL converts the raw channel obtained from the NIST QD
 %channel model, converting it into the downlink channel struct array
 %of dimension nTimeSample x 1, where nTimeSample corresponds to the lenght
-% of the simulation. Each entry is the MU-MIMO cell matrix of dimension 
+% of the simulation. Each entry is the MU-MIMO cell matrix of dimension
 % (nRx x nRxPaa) x (nTx x nTxPaa). The entry of each cell is the nAntRx x
 % nAntTx matrix.
 %
@@ -12,7 +12,7 @@ function [Hmat, Delaymat] = getMultiUserChannel(Hraw, paaInfo, nTimeSample, vara
 % D can be accessed as:  D{t}{paaRxId,paaTxId}(l)
 %
 % [H, D] = GETMULTIUSERCHANNEL(Hraw, ..., 'nTx', value) specify the number of TX
-% in the scenario. Default value is 1.  Assumption: paaInfo(1:nTx) are 
+% in the scenario. Default value is 1.  Assumption: paaInfo(1:nTx) are
 % relative to the tx.
 %
 
@@ -45,72 +45,101 @@ function [Hmat, Delaymat] = getMultiUserChannel(Hraw, paaInfo, nTimeSample, vara
 % The software developed by NIST employees is not subject to copyright
 % protection within the United States.
 %
-% 2020 NIST/CTL (steve.blandino@nist.gov)
+% 2020-2022 NIST/CTL (steve.blandino@nist.gov)
 
 %% Varargin processing
 p = inputParser;
 addParameter(p,'nTx', 1)
+addParameter(p,'paa', [1 1]);
+
 parse(p, varargin{:});
 nTx  = p.Results.nTx;
+paaNodes  = p.Results.paa;
+
 
 nNodes = size(Hraw,1);
 nRx = nNodes-nTx;
-rxId = nTx+1:nNodes;
-txId = 1:nTx;
+rxIdVec = nTx+1:nNodes;
+txIdVec = 1:nTx;
 H = cell(nRx, nTx);
 [H{:}] =  Hraw{nTx+1:end, 1:nTx};
-paaT = [paaInfo(1:nTx).NumPaa];
-paaR = [paaInfo(nTx+1:end).NumPaa];
-Hmat = cell(nTimeSample,1);
-for t = 1:nTimeSample
-    sumIdPaaRx = 0;
-    for nodeRx = rxId
-        sumIdPaaTx = 0;
-        
-        for nodeTx = txId
-            paaRxId = sumIdPaaRx+1;
-            
-            rxPaaInfo = paaInfo(nodeRx);
-            txPaaInfo = paaInfo(nodeTx);
-            nPaaRx = rxPaaInfo.NumPaa;
-            nPaaTx = txPaaInfo.NumPaa;
-            for paaRx = 1:nPaaRx
-                paaTxId = sumIdPaaTx+1;
-                
-                for paaTx = 1:nPaaTx
-                    ddir = H{nodeRx-nTx,nodeTx}.channelMimo{paaRx,paaTx};
-                    % Get Tx and Rx phasor/steering vector for each ray
-                    txSteeringVectors  = getSteeringVectors(typeCast(ddir.aodAz(t,:)),typeCast(ddir.aoaEl(t,:)),txPaaInfo.codebook.sv_3d);
-                    rxSteeringVectors  = getSteeringVectors(typeCast(ddir.aoaAz(t,:)),typeCast(ddir.aoaEl(t,:)),rxPaaInfo.codebook.sv_3d);
-                    ddirAmplitude = 10.^(typeCast(ddir.gain(t,:))/20);
-                    ddirPhase  = typeCast(ddir.phase(t,:));
-                    complexGain = ddirAmplitude.*exp(1j*ddirPhase);
-                    L = size(ddirAmplitude,1);
-                    antRxId = 1:rxPaaInfo.NumAntenna;
-                    antTxId = 1:txPaaInfo.NumAntenna;
-                    
-                    for l = 1: L
-                        Hmat{t}{paaRxId,paaTxId}(antRxId,antTxId,l) = squeeze(rxSteeringVectors(l,:))*complexGain(l)*squeeze(txSteeringVectors(l,:))';
-                    end
-                    Delaymat{t,1}{paaRxId,paaTxId} = ddir.delay(t,:);
-                    paaTxId= paaTxId+1;
-                end
-                paaRxId = paaRxId+1;
-                
-            end
-            sumIdPaaTx = sum(paaT(1:nodeTx));
-            
-        end
-        sumIdPaaRx = sum(paaR(1:(nodeRx-nTx)));
-        
-    end
-    
-end
-end
 
-function x = typeCast(x)
-if iscell(x)
-    x = cell2mat(x);
+assert(size(H{1}.channelMimo{1}.delay,1)>=nTimeSample, 'simulationConfig:nTimeSamp does not match with qdChannel/qdOutput')
+
+nPaaTx = paaNodes(1:nTx);
+nPaaRx = paaNodes(nTx+1:end);
+
+mimoMat = cell(nTimeSample,1);
+delayMat = cell(nTimeSample,1);
+
+for t = 1:nTimeSample
+
+    for nodeRx = 1:nRx
+
+        for nodeTx = 1:nTx
+            nPaaRx = nPaaRx(nodeRx);
+            nPaaTx = nPaaTx(nodeTx);
+            rxSv = paaInfo(rxIdVec(nodeRx)).sv_3d;
+            txSv = paaInfo(txIdVec(nodeTx)).sv_3d;
+
+            for paaRx = 1:nPaaRx
+
+                for paaTx = 1:nPaaTx
+                    %% DDIR to MIMO
+                    ddir = H{rxIdVec(nodeRx)-nTx,txIdVec(nodeTx)}.channelMimo{paaRx,paaTx};
+                    % Get Tx and Rx phasor/steering vector for each ray
+                    if iscell(ddir.aodAz)
+                        aoaAz = ddir.aoaAz{t};
+                        aoaEl = ddir.aoaEl{t};
+                        aodAz = ddir.aodAz{t};
+                        aodEl = ddir.aodEl{t};
+                    else
+                        aoaAz = ddir.aoaAz(t,:).';
+                        aoaEl = ddir.aoaEl(t,:).';
+                        aodAz = ddir.aodAz(t,:).';
+                        aodEl = ddir.aodEl(t,:).';
+                    end
+
+                    % MPC complex gain
+                    if iscell(ddir.gain)
+                        ddirAmplitude = 10.^(ddir.gain{t}/20);
+                        ddirPhase  = ddir.phase{t};
+                    else
+                        ddirAmplitude = 10.^(ddir.gain(t,:)/20);
+                        ddirPhase  = ddir.phase(t,:);
+                    end
+
+                    complexGain = ddirAmplitude(:).*exp(1j*ddirPhase(:));
+
+                    L = size(complexGain,1);
+                    antRxId = 1:paaInfo(rxIdVec(nodeRx)).numElements;
+                    antTxId = 1:paaInfo(txIdVec(nodeTx)).numElements;
+                    
+                    if isempty(txSv)
+                        txSteeringVectors = ones(1,L);
+                    else
+                        txSteeringVectors  = getSteeringVectors(aodAz,aodEl,txSv);
+                    end
+
+                    if isempty(rxSv)
+                        rxSteeringVectors = ones(1,L);
+                    else
+                        rxSteeringVectors  = getSteeringVectors(aoaAz,aoaEl,rxSv);
+                    end
+
+                    % Apply steering vector to get MIMO matrix
+                    for l = 1: L
+                        mimoMat{t}{paaRx,paaTx}(antRxId,antTxId,l) = rxSteeringVectors(:,l)*complexGain(l)*txSteeringVectors(:,l)';
+                    end
+                    if iscell(ddir.delay)
+                        delayMat{t}{paaRx,paaTx} = ddir.delay{t};
+                    else
+                        delayMat{t}{paaRx,paaTx} = ddir.delay(t,:);
+                    end
+                end
+            end
+        end
+    end
+
 end
-x = x(:);
 end

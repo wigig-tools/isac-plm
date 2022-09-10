@@ -1,4 +1,5 @@
-function [simuParams, phyParams,chanCfg,nodeParams] = setParameterConstraint(simuParams, phyParams,chanCfg,nodeParams)
+function [simuParams, phyParams,chanCfg,nodeParams] = ...
+    setParameterConstraint(simuParams, phyParams,chanCfg,nodeParams)
 %setParameterConstraint Set constraints of parameters in different configurations.
 %   All inputs and outpus are structs.
 
@@ -7,7 +8,6 @@ function [simuParams, phyParams,chanCfg,nodeParams] = setParameterConstraint(sim
 %   This file is available under the terms of the NIST License.
 
 assert(ismember(simuParams.debugFlag,[0,1,2]), 'debugFlag should be 0,1 or 2.');
-assert(ismember(simuParams.pktFormatFlag,[0,1]), 'pktFormatFlag should be 0 or 1.');
 assert(ismember(simuParams.dopplerFlag,[0,1]), 'dopplerFlag should be 0 or 1.');
 assert(~isempty(simuParams.chanFlag),'Wrong Channel Model')
 assert(ismember(simuParams.chanFlag,[0,1,2,3,4]),'chanFlag should be 0,1,2,3 or 4.');
@@ -30,10 +30,11 @@ assert(ismember(phyParams.numUsers,1:8), 'numUsers should be 1 to 8.');
 assert(ismember(phyParams.numTxAnt,1:8), 'numTxAnt should be  1 to 8.');
 assert(ismember(phyParams.numSTSTot,1:8),'numSTSTot should be 1 to 8.');
 
-chanCfg.realizationSetIndex = 0;
+% chanCfg.realizationSetIndex = 0;
 
 if strcmp(chanCfg.chanModel,'AWGN')
     % AWGN Setup
+    chanCfg.realizationSetIndex = 0;
     phyParams.svdFlag = checkInput(phyParams.svdFlag, 0, 'AWGN config. Set expected svdFlag value:');
     phyParams.powAlloFlag = checkInput(phyParams.powAlloFlag, 0, 'AWGN config. Set expected powAlloFlag value:');
     phyParams.precAlgoFlag = checkInput(phyParams.precAlgoFlag, 0, 'AWGN config. Set expected precAlgoFlag value:');
@@ -45,11 +46,13 @@ if strcmp(chanCfg.chanModel,'AWGN')
 else
     % Fading Setup
     if strcmp(chanCfg.chanModel,'Rayleigh')
+        chanCfg.realizationSetIndex = 0;
         assert(chanCfg.numTaps>0,'When using Rayleigh channel model, numTaps should be > 0.');
-        assert(chanCfg.maxMimoArrivalDelay>=0,'When chanFlag=1, maxMimoArrivalDelay should be >= 0.');    
+        assert(chanCfg.maxMimoArrivalDelay>=0,'When chanFlag=1, maxMimoArrivalDelay should be >= 0.');
     end
-    
+
     if strcmp(chanCfg.chanModel,'NIST')
+        chanCfg.realizationSetIndex = 0;
         assert(isnumeric(chanCfg.rxPowThresdB),'chanCfg.rxPowThresdB should be numeric.');
         if isempty(chanCfg.rxPowThresdB)
             chanCfg.rxPowThresType = checkInput(chanCfg.rxPowThresType,'Inactivated', ...
@@ -70,7 +73,7 @@ else
             error('chanCfg.rxPowThresType should be Inactivated, Static or Dynamic.');
         end
     end
-        
+
     if strcmp(phyParams.phyMode,'OFDM')
         if phyParams.equiChFlag == 0
             phyParams.equaAlgoFlag = checkInput(phyParams.equaAlgoFlag, 0, 'Set expected equaAlgoFlag value:');
@@ -81,25 +84,25 @@ else
     else
         error('phyMode should be either OFDM or SC.');
     end
-    
-    if simuParams.pktFormatFlag == 0
+
+    if simuParams.psduMode == 0
         phyParams.equiChFlag = checkInput(phyParams.equiChFlag, 1, 'PPDU config. Set expected equiChFlag value:');
         if strcmp(simuParams.metricStr,'SE')
-            warning('SE for PPDU (pktFormatFlag=0, paraSimu.csit=estimated) requires validation.');
-            % Set for estimated channel based on  NDP 
+            warning('SE for PPDU requires validation.');
+            % Set for estimated channel based on  NDP
             if phyParams.processFlag ~= 0
                 if strcmp(phyParams.phyMode,'SC') && phyParams.precAlgoFlag == 5
                     phyParams.equiChFlag = checkInput(phyParams.equiChFlag, 3, 'Set expected equiChFlag value:');
-                    error('SE of SC mode for PPDU (pktFormatFlag=0, paraSimu.csit=estimated) requires debugging.');
+                    error('SE of SC mode for PPDU requires debugging.');
                 else
                     phyParams.equiChFlag = checkInput(phyParams.equiChFlag, 2, 'Set expected equiChFlag value:');
                 end
             end
         end
-        assert(phyParams.equaAlgoFlag~=0,'When pktFormatFlag=0, equaAlgoFlag should not be 0.');
+        assert(phyParams.equaAlgoFlag~=0,'When packetType includes preamble, equaAlgoFlag should not be 0.');
     else
     end
-    
+
     if phyParams.svdFlag == 0
         if phyParams.precAlgoFlag == 0
             % Non Tx precoding, use Rx MIMO detection
@@ -189,11 +192,37 @@ assert(any([1,strcmp(phyParams.smTypeDP,{'Direct','Hadamard','Fourier','Custom'}
 if strcmp(phyParams.smTypeDP,'Direct')
     simuParams.csit = '';
 else
-    if simuParams.pktFormatFlag == 0
+    if simuParams.psduMode == 0
         simuParams.csit = 'estimated';
     else
         simuParams.csit = 'ideal';
     end
+end
+
+if strcmp(chanCfg.chanModel,'sensing')
+    assert((phyParams.numUsers+1) == length(nodeParams), 'Node Params not defined')
+end
+
+%% MULTI-STATIC PPDU
+if phyParams.msSensing ==1
+    assert(simuParams.psduMode == 0, 'Multi-Static EDMG requires PPDU transmission. Set psduMode = 0' )
+    assert(strcmp(phyParams.phyMode, 'SC'), 'Multi-Static Sensing PPDU is defined for SC' )
+    assert(all(phyParams.numSTSVec==1), 'EDMG Multi-Static Sensing is defined for single space-time stream SC PPDUs only')
+    if phyParams.lenPsduByt ~= 0
+        phyParams.lenPsduByt = 0;
+        warning('In a PPDU in which the the msSensing is set to 1, lenPsduByt is set to 0 and the length of the data field is 0 chips')
+    end
+
+    %   TRN
+    assert(mod((phyParams.unitM+1)/phyParams.unitN,1)==0, ['The value of the EDMG TRN-Unit M field plus one' ...
+        'shall be an integer multiple of the value indicated in the EDMG TRN-Unit N'])
+
+    if strcmp(phyParams.packetType, 'TRN-T') && phyParams.unitN == 1
+        assert(phyParams.trainingLength<=2040/(phyParams.unitM+1), ...
+            ['In an EDMG BRP-TX PPDU with EDMG TRN-Unit N field equal to 0, ' ...
+            'the EDMG TRN Length field shall be less than or equal to 2040/M.'] )
+    end
+
 end
 
 end

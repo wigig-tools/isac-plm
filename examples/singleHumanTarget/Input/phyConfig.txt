@@ -1,5 +1,6 @@
 ParameterName	ParameterValue
 phyMode	SC
+packetType	TRN-R
 lenPsduByt	4096
 giType	Long
 numSTSVec	1

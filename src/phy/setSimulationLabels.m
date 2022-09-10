@@ -7,9 +7,9 @@ function simuParams = setSimulationLabels(simuParams, phyParams,chanCfg)
 
 %#codegen
 
-if simuParams.pktFormatFlag == 0
+if simuParams.psduMode == 0
     simuParams.pktFormatStr = 'PPDU';
-elseif simuParams.pktFormatFlag == 1
+elseif simuParams.psduMode == 1
     simuParams.pktFormatStr = 'PSDU';
 else
 end
@@ -73,12 +73,12 @@ elseif simuParams.chanFlag == 3
     simuParams.paaCfgStr = strcat('PAA',chanCfg.paaCfg.arrayDimension);
     simuParams.abfCfgStr = strcat(chanCfg.paaCfg.beamSelection,'-',chanCfg.paaCfg.beamReduction);
 elseif simuParams.chanFlag == 4
-    simuParams.chanCfgStr = 'sensNIST';
+    simuParams.chanCfgStr = 'sensing';
 else
     error('chanFlag should be 0~4.');
 end
 
-simuParams.simuCfgStr = strcat('T',num2str(simuParams.pktFormatFlag),'C',num2str(simuParams.chanFlag));
+simuParams.simuCfgStr = strcat('T',num2str(simuParams.psduMode),'C',num2str(simuParams.chanFlag));
 if simuParams.chanFlag == 3
     simuParams.mimoCfgStr = vec2str(chanCfg.nistChan.graphTxRxOriginal);
 else

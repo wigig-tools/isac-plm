@@ -63,11 +63,12 @@ params = cell2struct(paramsCell(2,:), paramsCell(1,:), 2);
 %% Check validity
 params = fieldToNum(params, 'debugFlag', [0 2],'step', 1,'defaultValue', 0);
 if isIsac
-    params = fieldToNum(params, 'pktFormatFlag', 0,'defaultValue', 0);
+    params = fieldToNum(params, 'psduMode', 0,'defaultValue', 0);
 else
-    params = fieldToNum(params, 'pktFormatFlag', [0 1],'defaultValue', 1);
+    params = fieldToNum(params, 'psduMode', [0 1],'defaultValue', 1);
 end
 params = fieldToNum(params, 'dopplerFlag', [0 1],'defaultValue', 0);
+params = fieldToNum(params, 'noiseFlag', [0 1 2],'defaultValue', 2);
 params = fieldToNum(params, 'snrMode', {'EsNo','EbNo','SNR'},'defaultValue','EsNo');
 params = fieldToNum(params, 'snrAntNormFlag', [0 1],'defaultValue',0);
 params = fieldToNum(params, 'snrStep', [0 inf],'step',eps,'defaultValue', 1);
@@ -76,9 +77,9 @@ params = fieldToNum(params, 'maxNumErrors', [0 inf],'step',eps, 'defaultValue',1
 params = fieldToNum(params, 'maxNumPackets', [0 inf],'step',eps, 'defaultValue',1e3);
 params = fieldToNum(params, 'snrSeed', [1 inf],'step',eps, 'defaultValue',1e2);
 params = fieldToNum(params, 'nTimeSamp', [1 1e4],'step', 1, 'defaultValue',1);
-params = fieldToNum(params, 'plotRangeDopplerMap', [0 1], 'step', 1, 'defaultValue', 0);
-params = fieldToNum(params, 'plotVelocity', [0 1], 'step', 1, 'defaultValue', 0);
-params = fieldToNum(params, 'plotRange', [0 1], 'step', 1, 'defaultValue', 0);
+params = fieldToNum(params, 'sensPlot', [0 1], 'step', 1, 'defaultValue', 0);
+params = fieldToNum(params, 'saveRdaMap', [0 1], 'step', 1, 'defaultValue', 0);
+params = fieldToNum(params, 'disableRdaAxis', [0 1], 'step', 1, 'defaultValue', 0);
 params.wsNameStr = pwd;
 end
 

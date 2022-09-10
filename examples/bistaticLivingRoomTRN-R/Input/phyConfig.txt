@@ -1,0 +1,6 @@
+ParameterName	ParameterValue
+symbOffset	0.75
+packetType	TRN-R
+trainingLength	9
+subfieldSeqLength	128
+msSensing	1

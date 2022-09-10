@@ -1,4 +1,4 @@
-function [rEst,timeShift] =  estimateRange(discreteMicroDopplerTime,slowTimeGrid,...
+function [rEst,timeShift,idR] =  estimateRange(discreteMicroDopplerTime,slowTimeGrid,...
     fastTimeGrid, syncPoint, t0, varargin)
 %%ESTIMATERANGE Target estiamated velocity
 %
@@ -36,7 +36,7 @@ c = getConst('lightSpeed');
 timeShift = fastTimeGrid(syncPoint+1)-t0{2}(1); % Hardcoded : no multi STA, STA not moving
 fastTimeAbs = fastTimeGrid-timeShift; 
 [~, t] = meshgrid(slowTimeGrid,fastTimeAbs);
-rangeTime = squeeze(sum(discreteMicroDopplerTime,1));
+rangeTime = permute(sum(discreteMicroDopplerTime,1), [2 3 1]);
 
 switch p.Results.method
     case 'mean'
@@ -45,12 +45,20 @@ switch p.Results.method
 
     case 'max'
         [~, mt] = max(rangeTime,[], 1);
-        rEst =fastTimeAbs(mt);
+        rEst =fastTimeAbs(mt)*c;
         
     case 'max+filter'
-        [~, mt] = max(rangeTime,[], 1);
+		[~, mt] = max(rangeTime,[], 1);
         rEst = fastTimeAbs(mt)*c;
-        rEst = conv(rEst, getSmoothingFilter('gaussian', [7,1],1), 'same');
+        filtLen = 3;
+        sigLen = length(rEst);
+        % Add samples to compensate for ramp and tail
+        rEst = [rEst(1)*ones(1, filtLen-1), rEst, rEst(end)*ones(1, filtLen-1)];
+        % Filter
+        rEst = conv(rEst, getSmoothingFilter('movingAverage', [filtLen,1],1));
+        % Remove initial ramp and tail
+        rEst = rEst(filtLen: filtLen+sigLen-1);
 end
-
+idR = any(rangeTime);
+rEst(~idR) = NaN;
 end

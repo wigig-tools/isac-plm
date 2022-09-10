@@ -63,15 +63,16 @@ simulation.scenarioPath =scenarioPath;
 
 % PHY
 phy = configPhy(scenarioPath, 'isac', isIsac);
-
+nodes = length(phy.numSTSVec);
 % Channel
 channel = configChannel(scenarioPath);
 
-% Node: for future use QD
-nodeParams = configNodes(scenarioPath);
+% Node
+nodeParams = configNodes(scenarioPath, nodes+1);
 
 % Complete config with dependent parameters
-[simulation, phy, channel, nodeParams] = setDependencies(simulation, phy, channel, nodeParams);
+[simulation, phy, channel, nodeParams] = ...
+    setDependencies(simulation, phy, channel, nodeParams);
 
 % Set Channel Model 
 channel = setChannelModelParams(channel,sens,phy,simulation,nodeParams);

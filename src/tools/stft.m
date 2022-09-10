@@ -36,7 +36,7 @@ validProcess = [1 2];
 checkProcess = @(x) any(ismember(x,validProcess));
 
 defaultWindow = 'rect';
-validWindow = {'rect','hamming', 'blackmanharris', 'gaussian'};
+validWindow = {'rect','hamming', 'blackmanharris', 'gaussian', 'kaiser'};
 checkWindow = @(x) any(validatestring(x,validWindow));
 checkOverlap = @(x) (x>=0 & x<=1);
 
