@@ -1,10 +1,10 @@
 pri	0.0005
-dopplerFftLen	512
-window	rect
+dopplerFftLen	64
+window	hamming
 windowLen	16
-windowOverlap	0
+windowOverlap	0.1
 pulsesCpi	64
 thresholdSensing	1
 threshold	0.001
 csiVariationScheme	TRRS
-interpolationScheme	previousMeasuremment
+interpolationScheme	linearInterpolation

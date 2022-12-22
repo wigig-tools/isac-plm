@@ -100,6 +100,9 @@ for iMCS = 1:phyParams.numMCS
     % Save sensing results
     results.sensing = [isacResults.sensRes];
     results.sensingInfo = [isacResults.sensInfo];
+    if simParams.saveCsi
+        results.csi = [isacResults.csi];
+    end
 
 end     % End of MCS loop
 

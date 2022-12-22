@@ -8,4 +8,5 @@ snrAntNormFlag	0
 maxNumErrors	1
 maxNumPackets	1
 nTimeSamp	2056
-snrRange	20
+snrRange	300
+sensPlot	1

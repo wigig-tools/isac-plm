@@ -23,6 +23,8 @@ end
 if ~isempty(thInfo)
     sensInfo.normCSIVarValue = thInfo.normCSIVarValue;
     sensInfo.threshold = thInfo.threshold;
+    sensInfo.adaptiveThreshold = thInfo.adaptiveThreshold;
+
 end
 if phyParams.cfgEDMG.MsSensing == 1    
     if isstruct(channelParams.targetInfo.angle)
