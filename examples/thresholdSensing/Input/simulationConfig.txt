@@ -10,3 +10,4 @@ maxNumPackets	1
 nTimeSamp	2056
 snrRange	300
 sensPlot	1
+saveRdaMap	1

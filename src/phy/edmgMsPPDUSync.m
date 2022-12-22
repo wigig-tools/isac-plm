@@ -37,7 +37,7 @@ syncId = nan;
 t0 =  nan;
 agc = nan;
 coarseCFO = nan;
-factorThreshold = 1e4; % detection threshold. Manually tuned
+factorThreshold = 1e4/2; % detection threshold. Manually tuned
 
 %% Generate Ga 
 [Ga, ~] = getGolaySta(cfgEDMG, userIdx);

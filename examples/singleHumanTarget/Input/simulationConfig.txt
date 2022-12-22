@@ -9,4 +9,5 @@ maxNumErrors	1
 maxNumPackets	10
 nTimeSamp	256
 snrRange	20
-plotSens	1
+sensPlot	1
+saveRdaMap	1
