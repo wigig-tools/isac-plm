@@ -70,12 +70,20 @@ These predefined scenarios are given as examples in `/src/examples/`. Each scena
 | pointTargetActiveSensing   | 1            | 	1	   | NIST QD 	   | - 		  | -	  |  -				|   TRN-R	   |
 | bistaticLivingRoomTRN-R| 1            | 	1	   | NIST QD 	   | - 		  | -	  |  -				|   TRN-R	   |
 | bistaticLivingRoomTRN-T| 1            | 	1	   | NIST QD 	   | - 		  | -	  |  -				|   TRN-T	   |
+| thresholdSensing	| 1            | 	1	   | NIST QD 	   | - 		  | MMSE 	  |  0				|   PPDU 	   |
 
 ## Published Work
 
 - J. Zhang, S. Blandino, N. Varshney, J. Wang, C. Gentile and N. Golmie, [Multi-User MIMO Enabled Virtual Reality in IEEE 802.11ay WLAN](https://ieeexplore.ieee.org/document/9771778), 2022 IEEE Wireless Communication and Networking Conference.
 - S. Blandino, T.Ropitault, A. Sahoo and N. Golmie, [Tools, Models and Dataset for IEEE 802.11ay
  CSI-based Sensing](https://ieeexplore.ieee.org/document/9771569), 2022 IEEE Wireless Communication and Networking Conference.
+
+## IEEE 802.11bf contributions
+
+- [DMG/EDMG Link Level Simulation Platform](https://mentor.ieee.org/802.11/dcn/22/11-22-0803-00-00bf-dmg-edmg-link-level-simulation-platform.pptx)
+- [Implementation of 60 GHz WLAN-SENS Physical Layer Model](https://mentor.ieee.org/802.11/dcn/22/11-22-1217-01-00bf-implementation-of-60-ghz-wlan-sens-physical-layer-model.docx)
+- [Channel Models for WLAN Sensing Systems](https://mentor.ieee.org/802.11/dcn/21/11-21-0782-05-00bf-channel-models-for-wlan-sensing-systems.docx)
+- [11bf Evaluation Methodology and Simulation Scenarios](https://mentor.ieee.org/802.11/dcn/21/11-21-0876-05-00bf-11bf-evaluation-methodology-and-simulation-scenarios.doc)
 
 ## Contributing
 Feedbacks and additions are more than welcomed! You can directly contact the [authors](#Authors) for any information.

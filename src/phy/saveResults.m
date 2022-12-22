@@ -129,7 +129,7 @@ elseif strcmp(simParams.metricStr,'ISAC')   &&  ~isempty(results.sensing)
             s.snr = snrvect(i);
             s.sensInstanceId = j;
             iRda = find(rda);
-            [ir,iv,ia]=ind2sub(size(results(i).sensing.rda), iRda);
+            [iv,ir,ia]=ind2sub(size(results(i).sensing.rda), iRda);
             s.axisRange = ir;
             s.axisVelocity = iv;
             s.axisAngle = ia;

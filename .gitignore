@@ -2,3 +2,4 @@
 /results/*
 *.asv
 *.DS_store
+*.mat
