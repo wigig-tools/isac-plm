@@ -191,3 +191,6 @@ output.gbitRateSumUser=gbitRateSumUser;
 output.numSuccessPkt=numSuccessPkt;
 output.sensRes = sensRes;
 output.sensInfo = sensInfo;
+if simParams.saveCsi
+    output.csi = csiSens;
+end
