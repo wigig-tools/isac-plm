@@ -74,6 +74,7 @@ These predefined scenarios are given as examples in `/src/examples/`. Each scena
 
 ## Published Work
 
+- S. Blandino, T. Ropitault, C. R. C. M. da Silva, A. Sahoo and N. Golmie, [IEEE 802.11bf DMG Sensing: Enabling High-Resolution mmWave Wi-Fi Sensing](https://ieeexplore.ieee.org/document/10018014), IEEE Open Journal of Vehicular Technology.
 - J. Zhang, S. Blandino, N. Varshney, J. Wang, C. Gentile and N. Golmie, [Multi-User MIMO Enabled Virtual Reality in IEEE 802.11ay WLAN](https://ieeexplore.ieee.org/document/9771778), 2022 IEEE Wireless Communication and Networking Conference.
 - S. Blandino, T.Ropitault, A. Sahoo and N. Golmie, [Tools, Models and Dataset for IEEE 802.11ay
  CSI-based Sensing](https://ieeexplore.ieee.org/document/9771569), 2022 IEEE Wireless Communication and Networking Conference.
