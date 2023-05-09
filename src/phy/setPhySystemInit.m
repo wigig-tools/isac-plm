@@ -27,7 +27,7 @@ cfgEDMG.MCS = phyParams.mcsMU(1,:);         % Force to OFDM
 
 % TRN 
 cfgEDMG.PacketType = phyParams.packetType;
-if phyParams.msSensing
+if strcmp(phyParams.sensingType, 'bistatic-trn')
     cfgEDMG.UnitP = phyParams.unitP;
     cfgEDMG.UnitM = phyParams.unitM;
     cfgEDMG.UnitN = phyParams.unitN;
@@ -44,8 +44,8 @@ cfgEDMG.NumTransmitAntennas = phyParams.numTxAnt;
 cfgEDMG.NumSpaceTimeStreams = phyParams.numSTSVec;
 cfgEDMG.PreambleSpatialMappingType = phyParams.smTypeDP;  % 'Data';    
 cfgEDMG.SpatialMappingType = phyParams.smTypeDP;
-cfgEDMG.MsSensing  = phyParams.msSensing;
-if cfgEDMG.MsSensing == 1
+cfgEDMG.SensingType  = phyParams.sensingType;
+if any(ismember(["bistatic-trn", "passive-beacon"], cfgEDMG.SensingType  ))
     phyParams.lenPsduByt = 0;
     cfgEDMG.PSDULength = cfgEDMG.PSDULength*0;
 end

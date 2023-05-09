@@ -26,7 +26,8 @@ if ~isempty(thInfo)
     sensInfo.adaptiveThreshold = thInfo.adaptiveThreshold;
 
 end
-if phyParams.cfgEDMG.MsSensing == 1    
+
+if strcmp(phyParams.cfgEDMG.SensingType, 'bistatic-trn')
     if isstruct(channelParams.targetInfo.angle)
         switch phyParams.packetType
             case 'TRN-R'
@@ -40,5 +41,4 @@ if phyParams.cfgEDMG.MsSensing == 1
         sensInfo.gtAz = nan(1, simParams.nTimeSamp);
         sensInfo.gtEl = nan(1, simParams.nTimeSamp);
     end
-
 end

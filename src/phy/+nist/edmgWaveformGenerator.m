@@ -198,6 +198,7 @@ numPktSamples = s.NumPPDUSamples(1);    % Modified to use first column, To be ch
 
 nonedmgFields = [wlan.internal.dmgSTF(cfgEDMG); wlan.internal.dmgCE(cfgEDMG)];
 trn = [];
+sync = [];
 if isEDMGOFDM
     % In OFDM PHY preamble fields are resampled to OFDM rate
     nonedmgPreamble = edmgTDCyclicShift(wlan.internal.dmgResample(...
@@ -206,7 +207,7 @@ if isEDMGOFDM
     % No brfield
 else
     % isEDMGSC
-    if cfgEDMG.MsSensing == 0
+    if ~strcmp(cfgEDMG.SensingType, 'bistatic-trn')
         nonedmgPreamble = edmgTDCyclicShift(nonedmgFields, cfgEDMG);
         edmgPreamble = [edmgSTF(cfgEDMG); edmgCE(cfgEDMG)];
     else
@@ -275,13 +276,18 @@ for i = 1:useParams.NumPackets
         edmgHeaderB = [];
     end
     edmgPortion = [edmgHeaderA; edmgPreamble; edmgHeaderB];
-    preamble = [nonedmgPortion; edmgPortion];
+    if strcmp(cfgEDMG.SensingType, 'passive-beacon')
+        preamble = nonedmgPortion;
+    else
+        preamble = [nonedmgPortion; edmgPortion];
+    end
+    
 
     
 
     % Construct packet from preamble and data, without brfields
     if isEDMGSC
-        if cfgEDMG.MsSensing == 1 %No data
+        if strcmp(cfgEDMG.SensingType, 'bistatic-trn')  || strcmp(cfgEDMG.SensingType, 'passive-beacon')%No data
             packet = [preamble; sync; trn];
         else
             if sum(cfgEDMG.NumSpaceTimeStreams)>1

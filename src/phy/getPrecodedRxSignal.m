@@ -15,7 +15,7 @@ channelLen = size(H{1}, 3);
 rxSigLen = channelLen + txSigLen -1 ;
 fieldIndices = nist.edmgFieldIndices(phy.cfgEDMG);
 numSta = phy.numUsers;
-[searchTx,searchRx] = getNumPrecodingVectors(phy.cfgEDMG);
+[searchTx,searchRx] = getNumAwv(phy.cfgEDMG);
 
 rx = zeros(rxSigLen, 1+numSta+searchTx*searchRx);
 
@@ -61,7 +61,6 @@ else
         otherwise
     end
 end
-
 % Transmission
 switch phy.cfgEDMG.PacketType
     case  'TRN-R'

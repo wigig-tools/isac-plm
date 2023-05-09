@@ -1,4 +1,5 @@
 ParameterName	ParameterValue
+sensingType	passive-ppdu
 phyMode	SC
 lenPsduByt	4096
 giType	Long

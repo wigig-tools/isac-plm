@@ -1,0 +1,2 @@
+ParameterName	ParameterValue
+sensingType	passive-beacon

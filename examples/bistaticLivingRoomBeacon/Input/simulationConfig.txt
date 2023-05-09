@@ -1,0 +1,4 @@
+ParameterName	ParameterValue
+nTimeSamp	13
+snrRange	25
+saveCsi	1

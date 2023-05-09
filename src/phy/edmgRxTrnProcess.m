@@ -1,20 +1,23 @@
 function [packetError, syncStart, varargout] = edmgRxTrnProcess(rxSig, cfgEDMG, varargin)
 %EDMGPREAMBLEPROCESS process the legacy and EDMG preamble.
 %
-%   [packet_error, syncStart] = EDMGPREAMBLEPROCESS(rxSig, cfgEDMG)
+%   [packet_error, syncStart] = EDMGRXTRNPROCESS(rxSig, cfgEDMG)
 %   packet_error = 1 if sync is not successful otherwise packet_error = 0
 %   syncStart is the syncronization point
 %
 %   [packet_error, syncStart, preamble_param] =
-%                                    EDMGPREAMBLEPROCESS(rxSig, cfgEDMG)
+%                                    EDMGRXTRNPROCESS(rxSig, cfgEDMG)
 %   returns the struct preamble_param including the following information:
 %   - Syncronization L-STF
 %   - Channel estimation L-CEF
 %   - Syncronization EDMG-STF
 %   - Channel estimation EDMG-CEF
 %
+%   [_, TRN] = EDMGRXTRNPROCESS(rxSig, cfgEDMG) returns the struct TRN
+%   including quantities estimated in TRN subfields
+%   - snr: SNR per TRN subfield
 %
-%   [packet_error, syncStart] = edmgPreambleProcess(rxSig, cfgEDMG, 'Name',
+%   [packet_error, syncStart] = EDMGRXTRNPROCESS(rxSig, cfgEDMG, 'Name',
 %    value, ..)
 %   'syncTh': threshold for syncronization
 %   'syncMargin': Margin between syncronization and symbol starting point.
@@ -37,9 +40,6 @@ userIdx = p.Results.userIdx;
 validateattributes(cfgEDMG,{'nist.edmgConfig'},{'scalar'},mfilename,'EDMG format configuration object');
 
 %% Var init
-numSts = cfgEDMG.NumSpaceTimeStreams;
-golayId = sum(numSts(1:userIdx-1))+1:...
-    sum(numSts(1:userIdx-1))+ numSts(userIdx);
 fieldIndices = nist.edmgFieldIndices(cfgEDMG);
 
 %% Get packet
@@ -69,7 +69,7 @@ end
 
 edmgStf = rxSig(pktStartOffset+(fieldIndices.EDMGSTF(1): ...
     fieldIndices.EDMGSTF(2)), :);
-[edmgT0, edmgAgc, coarseCfo] = edmgSync(edmgStf, cfgEDMG, userIdx);
+[edmgT0, ~, ~] = edmgSync(edmgStf, cfgEDMG, userIdx);
 
 edmgT0NotFound = any(isnan(edmgT0(:)));
 if edmgT0NotFound
@@ -78,7 +78,7 @@ else
     edmgT0Sync = edmgT0-1 + fieldIndices.EDMGSYNC(1);
 end
 
-[edmgT0Ms, edmgAgc, coarseCfo] = edmgMsPPDUSync(rxSyncRate(edmgT0Sync:end), cfgEDMG, userIdx);
+[edmgT0Ms, edmgAgc, ~] = edmgMsPPDUSync(rxSyncRate(edmgT0Sync:end), cfgEDMG, userIdx);
 
 
 
@@ -97,34 +97,32 @@ end
 syncStart = edmgT0 - 1 + edmgT0Ms-1 -syncMargin;
 
 subNum = size(fieldIndices.TRNSubfields,1);
-
+trnSnrEst = zeros(1,subNum);
+ht = zeros(cfgEDMG.SubfieldSeqLength/2+1, subNum);
 i = 1;
 while i<subNum &&  size(rxSig,1) > syncStart+fieldIndices.TRNSubfields(i,2)
     trnSubf = rxSig(syncStart+ (fieldIndices.TRNSubfields(i,1):fieldIndices.TRNSubfields(i,2)));
-    ht(:,i) = edmgTrnChannelEstimate(trnSubf, cfgEDMG);
+    [ht(:,i), snr] = edmgTrnChannelEstimate(trnSubf, cfgEDMG);
+    trnSnrEst(i) = snr;
     i = i+1;
 end
+ht(:, i:end) = [];
+trnSnrEst(i:end) = [];
 h{1} = ht;
 
 % % SNR estimation
-edmg_snrEst = edmgSNREstimate(edmgStf,cfgEDMG);
+edmgSnrEst = edmgSNREstimate(edmgStf,cfgEDMG);
 
 %% Create output struct
 % EDMG
 preamble.edmg.t0 = edmgT0;
-if ~strcmp(cfgEDMG.PreambleSpatialMappingType, 'Custom')
-    preamble.edmg.chanEst = h;
-else
-    if strcmp(cfgEDMG.PHYType, 'OFDM')
-        preamble.edmg.chanEst = edmg_chanEst(:,:,golayId);
-    else
-        preamble.edmg.chanEst = edmg_chanEst(:,golayId,:);
-    end
-end
-preamble.edmg.snrEst  = edmg_snrEst;
+preamble.edmg.chanEst = h;
+preamble.edmg.snrEst  = edmgSnrEst;
 preamble.edmg.agc = edmgAgc;
 preamble.edmg.CFO = 0;
+% TRN
+trn.snr = trnSnrEst;
 varargout{1} = preamble;
-varargout{2} = rxSig;
+varargout{2} = trn;
 
 end

@@ -27,7 +27,7 @@ function  [peaks, peaksSub, varargout]= find2DPeaks(in, varargin)
 %% Varargin processing
 p = inputParser;
 
-defaultThres = max(in(:))/10;
+defaultThres = max(in(:))/30;
 defaultFilter = 'gaussian';
 defaultVar = 1;
 validFilter = {'sinc','gaussian', 'movingAverage'};

@@ -234,7 +234,7 @@ properties (Access = public)
     NumContiguousChannels = 1;
     % Set to 1 to Indicates that the PPDU is an EDMG Multi-Static Sensing PPDU
     % Set to 0 otherwise
-    MsSensing = 0;
+    SensingType = 'none';
 end
 
 properties(Constant, Hidden)

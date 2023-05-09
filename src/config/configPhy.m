@@ -99,14 +99,15 @@ params = fieldToNum(params, 'processFlag', [0 5], 'step', 1, 'defaultValue', 0);
 params = fieldToNum(params, 'symbOffset', [0 1], 'step', eps, 'defaultValue', 0.75);
 params = fieldToNum(params, 'softCsiFlag', [0 1], 'step', 1, 'defaultValue', defaultSoftCsiFlag);
 params = fieldToNum(params, 'ldpcDecMethod', {'norm-min-sum'}, 'defaultValue', 'norm-min-sum');
-params = fieldToNum(params, 'msSensing', [0 1], 'defaultValue', 0);
-if params.msSensing ==1
+params = fieldToNum(params, 'sensingType', {'passive-beacon','passive-ppdu', 'bistatic-trn', 'none'}, 'defaultValue', 'none');
+
+if strcmp(params.sensingType, 'bistatic-trn')
     params = fieldToNum(params, 'unitP', [0 1 2 4],  'defaultValue', 2);
-    params = fieldToNum(params, 'unitM', [0 2^4-1], 'step', 1, 'defaultValue', 5);
-    params = fieldToNum(params, 'unitN', [1 2 3 4 8], 'defaultValue', 3);
+    params = fieldToNum(params, 'unitM', [0 2^4-1], 'step', 1, 'defaultValue', 15);
+    params = fieldToNum(params, 'unitN', [1 2 3 4 8], 'defaultValue', 1);
     params = fieldToNum(params, 'unitRxPerUnitTx', [0 2^8-1], 'step', 1, 'defaultValue', 0);
     params = fieldToNum(params, 'subfieldSeqLength', [128 256 64], 'defaultValue', 128);
-    params = fieldToNum(params, 'trainingLength', [0 2^8-1], 'step', 1, 'defaultValue', 10);
+    params = fieldToNum(params, 'trainingLength', [0 2^8-1], 'step', 1, 'defaultValue', 6);
 end
 
 end

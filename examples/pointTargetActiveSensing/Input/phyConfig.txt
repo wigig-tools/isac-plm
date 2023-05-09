@@ -1,6 +1,5 @@
 ParameterName	ParameterValue
-symbOffset	0.75
+sensingType	bistatic-trn
 packetType	TRN-R
 trainingLength	29
 subfieldSeqLength	128
-msSensing	1
