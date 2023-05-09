@@ -43,7 +43,7 @@ if nargin == 1
         indHeader = getEDMGIndices(cfgEDMG,'DMG-Header');
         indEDMGHeaderA = getEDMGIndices(cfgEDMG,'EDMG-Header-A');
         indEDMGSTF = getEDMGIndices(cfgEDMG,'EDMG-STF');
-        if cfgEDMG.MsSensing == 0
+        if ~strcmp(cfgEDMG.SensingType, 'bistatic-trn')   
             indEDMGCEF = getEDMGIndices(cfgEDMG,'EDMG-CEF');
             indEDMGHeaderB = getEDMGIndices(cfgEDMG,'EDMG-Header-B');
             indData = getEDMGIndices(cfgEDMG,'EDMG-Data');
@@ -63,30 +63,12 @@ if nargin == 1
                 ...%'DMGTRNCE',       indTRNCE,...
                 ...%'DMGTRNSubfields',indTRNSF
                 );
-        elseif cfgEDMG.MsSensing == 1
+        elseif strcmp(cfgEDMG.SensingType, 'bistatic-trn') 
             indSync = getEDMGIndices(cfgEDMG,'EDMG-SYNC');
             indTRN = getEDMGIndices(cfgEDMG,'EDMG-TRN');
             indTRNUNITS = getEDMGIndices(cfgEDMG,'EDMG-TRNUNIT');
             indTRNSubfields = getEDMGIndices(cfgEDMG,'EDMG-TRNSubfields');
             indTRNUnitP = getEDMGIndices(cfgEDMG,'EDMG-TRNUnitP');
-%             indTRNUNITS
-%         elseif strcmpi(fieldType, 'EDMG-TRNSubfields')
-%     agcInd = getEDMGIndicesRaw(format,'EDMG-AGC'); % Previous field
-%     fieldStart = double(agcInd(2))+1;    
-%     if strcmp(phyType(format),'OFDM')
-%         NumCESamples = 1152*(3/2);
-%         fieldLength = 640*(3/2);
-%     else % Control/SC
-%         NumCESamples = 1152;
-%         fieldLength = 640;
-%     end
-%     if wlan.internal.isBRPPacket(format)
-%         numTRN = format.TrainingLength;
-%     else
-%         numTRN = 0;
-%     end
-%     indStart = fieldStart+(NumCESamples*ceil((1:numTRN).'/4))+(0:fieldLength:(fieldLength*numTRN-1)).';
-%     indEnd = indStart+fieldLength-1; = getEDMGIndices(cfgEDMG,'EDMG-TRNUNIT');
 
             indices = struct(...
                 'DMGSTF',         indSTF, ...
@@ -103,8 +85,6 @@ if nargin == 1
 
         end
         
-%         indAGC = getEDMGIndices(cfgEDMG,'EDMG-AGC');
-%         indAGCsf = getEDMGIndices(cfgEDMG,'EDMG-AGCSubfields');       
     end
     
 else
@@ -305,7 +285,7 @@ elseif strcmpi(fieldType, 'EDMG-TRN')
 %     prevInd = getEDMGIndicesRaw(format,'EDMG-AGC'); % Previous field
     prevInd = getEDMGIndicesRaw(format,'EDMG-SYNC'); % Previous field
     indStart = double(prevInd(2))+1;
-    if wlan.internal.isBRPPacket(format) && format.MsSensing == 0
+    if wlan.internal.isBRPPacket(format) && ~strcmp(format.SensingType, 'bistatic-trn')
         prevInd = getEDMGIndicesRaw(format,'EDMG-Data'); % Previous field
         indStart = double(prevInd(2))+1;
         numTRNUnits = format.TrainingLength/4;
@@ -314,7 +294,7 @@ elseif strcmpi(fieldType, 'EDMG-TRN')
         else % Control/SC
             fieldLength = (640*4+1152)*numTRNUnits;
         end
-    elseif format.MsSensing == 1
+    elseif strcmp(format.SensingType, 'bistatic-trn') 
         sfLen = format.SubfieldSeqLength*6;
         numTRNUnits = format.TrainingLength;
         switch format.PacketType
@@ -333,7 +313,7 @@ elseif strcmpi(fieldType, 'EDMG-TRN')
 elseif strcmpi(fieldType, 'EDMG-TRNUNIT')
     prevInd = getEDMGIndicesRaw(format,'EDMG-SYNC'); % Previous field
     fieldStart = double(prevInd(2))+1; 
-    if format.MsSensing == 0
+    if ~strcmp(format.SensingType, 'bistatic-trn')
         if strcmp(phyType(format),'OFDM')
             NumCESamples = 1152*(3/2);
             fieldLength = 640*(3/2);

@@ -52,7 +52,7 @@ end
 %% Recover aliasing jumps 
 if maxVelocity~= 0 
     normVal = pi/maxVelocity;
-    vEst = unwrap(vEst*normVal)/normVal;
+    vEst(vId) = unwrap(vEst(vId)*normVal)/normVal;
 end
 
 end

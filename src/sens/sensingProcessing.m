@@ -35,7 +35,7 @@ axPri = (0:nPri-1)*sensParams.pri;
 
 rd = zeros(dopplerFftLen,fastTimeLen,nCpi*nBlks);
 rda = zeros(dopplerFftLen,fastTimeLen,nCpi*nBlks,angleLen);
-rdMask = zeros(dopplerFftLen,fastTimeLen,nCpi*nBlks);
+rdMaskSum = zeros(dopplerFftLen,fastTimeLen,nCpi*nBlks);
 rdaMask = zeros(dopplerFftLen,fastTimeLen,nCpi*nBlks,angleLen);
 rdaThr = zeros(dopplerFftLen,fastTimeLen,nCpi*nBlks);
 rdaDenoise = zeros(dopplerFftLen,fastTimeLen,nCpi*nBlks,angleLen);
@@ -60,29 +60,31 @@ for a = 1:angleLen % Beam index
             [~,~, id, rdaThrB]=find2DPeaks(rdBlock);
             % Store index
             rdBlock(~id) = 0;
-            rdMask(:,:,(i-1)*nBlks+b) = rdBlock;
+            rdMaskSum(:,:,(i-1)*nBlks+b) = rdBlock;
             rdaThr(:,:,(i-1)*nBlks+b) = rdaThrB;
         end
     end
     rda(:,:,:,a) = rd;
-    rdaMask(:,:,:,a) = rdMask;
+    rdaMask(:,:,:,a) = rdMaskSum;
     rdaDenoise(:,:,:,a) = rdaThr;
 end
 
-if angleLen>1
-    dopplerFusion = sum(rdaDenoise,4);
-    dopplerFusionEstimateMask  =zeros(dopplerFftLen,fastTimeLen,nCpi);
-    for j = 1:size(dopplerFusion,3)
-        y = dopplerFusion(:,:,j);
-        [~,~, id]=find2DPeaks(y);
-        y(~id) = 0;
-        dopplerFusionEstimateMask(:,:,j) = y;
-    end
-    rdMask = dopplerFusionEstimateMask;
-end
+% if angleLen>1
+    %     dopplerFusion = sum(rdaDenoise,4);
+    %     dopplerFusionEstimateMask  =zeros(dopplerFftLen,fastTimeLen,nCpi);
+    %     for j = 1:size(dopplerFusion,3)
+    %         y = dopplerFusion(:,:,j);
+    %         [~,~, id]=find2DPeaks(y);
+    %         y(~id) = 0;
+    %         dopplerFusionEstimateMask(:,:,j) = y;
+    %     end
+    %     rdMask = dopplerFusionEstimateMask;
+    rdMaskSum  = sum(rdaMask,4);
+% else
+% end
 
 %% Velocity estimation
-[vEst, vId] = estimateVelocity(rdMask, axDopFftTime,axVelocity, 'maxVelocity', axVelocity(end));
+[vEst, vId] = estimateVelocity(rdMaskSum, axDopFftTime,axVelocity, 'maxVelocity', axVelocity(end));
 % Velocity extrapolation (linear)
 if isscalar(vEst)
     vEst = vEst*ones(1,nPri-1);
@@ -92,7 +94,7 @@ end
 
 %% Range estimation
 syncMargin = phyParams.giLength-round(phyParams.symbOffset*phyParams.giLength);
-[rEst, timeOffset, tId] = estimateRange(rdMask, axDopFftTime,axFastTime, syncMargin,ftm);
+[rEst, timeOffset, tId] = estimateRange(rdMaskSum, axDopFftTime,axFastTime, syncMargin,ftm);
 % Range extrapolation
 if isscalar(rEst)
     rEst = rEst*ones(1,nPri);
@@ -102,7 +104,7 @@ end
 
 %% Angle Estimation
 if angleLen>1
-    [aEst,axAngle, idAng] =  estimateAngle(rda, axDopFftTime,...
+    [aEst,axAngle, idAng] =  estimateAngle(rdaMask, axDopFftTime,...
         codebook, phyParams.packetType);
     % Angle extrapolation
     if size(aEst,1) == 1

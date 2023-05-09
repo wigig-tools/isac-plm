@@ -1,4 +1,4 @@
-function y = edmgTrn(cfgEDMG)
+function [y,TRN_SUBFIELD] = edmgTrn(cfgEDMG)
 %%EDMGTRN EDMG TRN field
 %
 %   Y = EDMGMSSYNC(CFGEDMG) generates the The TRN field structure

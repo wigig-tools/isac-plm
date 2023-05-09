@@ -204,13 +204,13 @@ if strcmp(chanCfg.chanModel,'sensing')
 end
 
 %% MULTI-STATIC PPDU
-if phyParams.msSensing ==1
-    assert(simuParams.psduMode == 0, 'Multi-Static EDMG requires PPDU transmission. Set psduMode = 0' )
-    assert(strcmp(phyParams.phyMode, 'SC'), 'Multi-Static Sensing PPDU is defined for SC' )
-    assert(all(phyParams.numSTSVec==1), 'EDMG Multi-Static Sensing is defined for single space-time stream SC PPDUs only')
+if strcmp(phyParams.sensingType, 'bistatic-trn')
+    assert(simuParams.psduMode == 0, 'Bi/Multi-Static EDMG requires PPDU transmission. Set psduMode = 0' )
+    assert(strcmp(phyParams.phyMode, 'SC'), 'Bi/Multi-Static Sensing PPDU is defined for SC' )
+    assert(all(phyParams.numSTSVec==1), 'EDMG Bi/Multi-Static Sensing is defined for single space-time stream SC PPDUs only')
     if phyParams.lenPsduByt ~= 0
         phyParams.lenPsduByt = 0;
-        warning('In a PPDU in which the the msSensing is set to 1, lenPsduByt is set to 0 and the length of the data field is 0 chips')
+        warning('In a sensing measurement instance, lenPsduByt is set to 0 and the length of the data field is 0 chips')
     end
 
     %   TRN

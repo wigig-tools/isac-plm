@@ -16,6 +16,8 @@ addParameter(p,'mcsIndex',defaultMcsIdx,isInteger);
 parse(p,varargin{:});
 
 runSensProcessing = p.Results.mcsIndex ==1; % Run sensing only for first MCS
+runSensProcessing = runSensProcessing & ...
+    any(ismember(["bistatic-trn", "passive-ppdu"], phyParams.cfgEDMG.SensingType));
 
 % Account for noise energy in nulls so the SNR is defined per
 % active subcarrier
@@ -34,6 +36,8 @@ evmSumSTS = zeros(1,numUsers);
 numSuccessPkt = 0;
 csiSens = cell(1, simParams.nTimeSamp);
 codebook = channelParams.codebook;
+[searchTx,searchRx] = getNumAwv(phyParams.cfgEDMG,codebook);
+snrSens = zeros(searchTx*searchRx, simParams.nTimeSamp);
 
 rng(simParams.snrSeed); % Set Random Seeds - Same random per SNR loop.
 
@@ -47,34 +51,48 @@ for numPkt= 1: simParams.nTimeSamp
     %% MIMO Waveform
     [txSig,txDpPsdu] = edmgTx(phyParams.cfgEDMG,simParams);
 
-    if phyParams.cfgEDMG.MsSensing == 1
-        h = channelParams.fullDigChannel(numPkt);
-        [rxSig, phyParams.trnBf{numPkt}] = getPrecodedRxSignal(txSig, h , codebook, phyParams);
-         rxSig = getNoisyRxSignal(rxSig, ...
-            1, simParams.noise);
-    else
-        channel.tdMimoChan = channelParams.fullDigChannel{numPkt};
-        channel.fdMimoChan = fft(channel.tdMimoChan,phyParams.fftLength,3);
-        %% Pass multi-path fading channel
-        rxSig = getNoisyRxSignal(txSig, ...
-            channel.tdMimoChan, simParams.noise);
-    end
-    %% Receiver signal processing
-    [syncError, rxDpPsdu,detSymbBlks,rxDataGrid,rxDataBlks, cir]  = ...
-        edmgRx(rxSig, phyParams, simParams);
-    
-    if syncError==0
-        csiSens(numPkt) = cir{1}; %SISO assumption
+    switch phyParams.cfgEDMG.SensingType
+        case 'bistatic-trn'
+            h = channelParams.fullDigChannel(numPkt);
+            [rxSig, phyParams.trnBf{numPkt}] = ...
+                getPrecodedRxSignal(txSig, h , codebook, phyParams);
+            rxSig = getNoisyRxSignal(rxSig, 1, simParams.noise);
+
+        case 'passive-beacon'
+            h = channelParams.fullDigChannel(numPkt);
+            rxSig = getPrecodedRxBeacon(txSig, h , codebook, simParams.noise);
+
+        case 'passive-ppdu'
+            channel.tdMimoChan = channelParams.fullDigChannel{numPkt};
+            channel.fdMimoChan = fft(channel.tdMimoChan,phyParams.fftLength,3);
+            rxSig = getNoisyRxSignal(txSig, ...
+                channel.tdMimoChan, simParams.noise);
     end
 
-    if syncError
+    %% Receiver signal processing
+    [syncError, rxDpPsdu,detSymbBlks,rxDataGrid,rxDataBlks, cir, trn,preamble]  = ...
+        edmgRx(rxSig, phyParams, simParams);
+    
+    if any(syncError==0)
+        csiSens(numPkt) = cir{1}; %SISO assumption
+        switch phyParams.cfgEDMG.SensingType
+            case 'passive-beacon'
+                snrSens(:,numPkt) = preamble.legacy.snr;
+            case 'bistatic-trn'
+                snrSens(1:length(trn.snr), numPkt) = trn.snr;
+            case 'passive-ppdu'
+               snrSens(numPkt) = preamble.edmg.snrEst;
+        end
+       
+    end
+
+    if all(syncError)
         numPacketErrors = numPacketErrors+1;
         continue; % Go to next loop iteration
     end
 
     %% Calculate EVM on received symbols
-   
-    if phyParams.cfgEDMG.MsSensing ~= 1
+   if  any(ismember(["passive-ppdu", "none"], phyParams.cfgEDMG.SensingType))
         [refConstellation,EVM] = edmgReferenceConstellation(phyParams.cfgEDMG);
         evmIndiSTS = cell(numUsers,1);
         for iUser = 1:numUsers
@@ -111,7 +129,7 @@ for numPkt= 1: simParams.nTimeSamp
     numSuccessPkt = numSuccessPkt+1;
     if mod(numSuccessPkt,round(simParams.nTimeSamp/100*10)) ==0 
         t2 = toc(t1);
-        fprintf('Estimated time remaining: %d s\n', round(10*t2/(numSuccessPkt/round(simParams.nTimeSamp/100*10))-t2))
+        fprintf('Estimated time remaining: %d s\n', max(round(10*t2/(numSuccessPkt/round(simParams.nTimeSamp/100*10))-t2),0))
     end
 end
 
@@ -127,13 +145,25 @@ if ~isempty(sensParams) && runSensProcessing
     sensRes = getSensingPerformance(rEst, vEst, channelParams.targetInfo, aEst, phyParams.packetType);
     sensRes.rda = rda;    
     sensRes.rflSub = rflSub;
+     if strcmp(phyParams.cfgEDMG.SensingType, 'passive-ppdu')
+         angleLen = 1;
+     else
+         angleLen = size(sensInfo.axAngle,1);
+     end
+    sensRes.beamSnr = snrSens(1:angleLen,:)';
     
     %% Info
     sensInfo = getSensInfo(sensInfo,channelParams,phyParams,simParams,thInfo);
 
 else
     sensRes = [];
+    sensInfo = [];
+    if strcmp(phyParams.cfgEDMG.SensingType, 'passive-beacon')
+            sensRes.beamSnr = snrSens';
+            sensInfo.axAngle = codebook(1).steeringAngle;
+    end
 end
+
 % Loop processing time cost
 packetLoopTimeEnd = toc(packetLoopTimeStart);
 packetLoopTimeAve = packetLoopTimeEnd/(numPkt-1);

@@ -51,26 +51,27 @@ The following Table describes the predefined examples scenarios and the main con
 These predefined scenarios are given as examples in `/src/examples/`. Each scenario contains a configuration input folder.
 
 
-| Example      | Number of Rx | Streams/rx | Channel Model | Precoder | Equalizer | Processing Flag | Packet 	   |
-| :---         |     :---:    |   :---:    | :---: 		   |:---:     | :---:     | :---:           | :---: 	   |
-| sisoOfdmAwgn_data  | 1			  | 	1	   | AWGN 	   | - 		  | MMSE 	  | 0				|	PSDU  	   |
-| sisoSc_data  | 1			  | 	1	   | Rayleigh 	   | - 		  | MMSE 	  | 0				|	PSDU  	   |
-| sisoOfdm_data| 1            | 	1	   | Rayleigh 	   | - 		  | MMSE 	  | 0				|   PSDU 	   |
-| sisoSc	   | 1			  | 	1	   | Rayleigh 	   | - 		  | MMSE 	  | 0				|	PPDU  	   |
-| sisoOfdm     | 1            | 	1	   | Rayleigh 	   | - 		  | MMSE 	  | 0				|   PPDU 	   |
-| mimoSc_data  | 1			  | 	2	   | Rayleigh 	   | RZF (Freq flat)	  | MMSE 	  | 1				|	PSDU  	   |
-| mimoOfdm_data| 1            | 	2	   | Rayleigh 	   | RZF (Freq sel) 		  | MMSE 	  | 1				|   PSDU 	   |
-| mimoSc	   | 1			  | 	2	   | Rayleigh 	   | RZF (Freq flat) 		  | MMSE 	  | 1				|	PPDU  	   |
-| mimoOfdm     | 1            | 	2	   | Rayleigh 	   | RZF (Freq sel) 		  | MMSE 	  | 1			|   PPDU 	   |
-| muMimoSc_data   | 2            | 	2	   | Rayleigh 	   | ZF (Time domain) 		  | MMSE 	  | 5				|   PSDU 	   |
-| muMimoOfdm_data   | 2            | 	2	   | Rayleigh 	   | RZF (Freq sel) 		  | MMSE 	  | 1				|   PSDU 	   |
-| muMimoOfdm   | 2            | 	2	   | Rayleigh 	   | RZF (Freq sel) 		  | MMSE 	  | 1				|   PPDU 	   |
-| pointTargetPassiveSensing   | 1            | 	1	   | NIST QD 	   | - 		  | MMSE 	  |  0				|   PPDU 	   |
-| singleHumanTarget   | 1            | 	1	   | NIST QD 	   | - 		  | MMSE 	  |  0				|   PPDU 	   |
-| pointTargetActiveSensing   | 1            | 	1	   | NIST QD 	   | - 		  | -	  |  -				|   TRN-R	   |
-| bistaticLivingRoomTRN-R| 1            | 	1	   | NIST QD 	   | - 		  | -	  |  -				|   TRN-R	   |
-| bistaticLivingRoomTRN-T| 1            | 	1	   | NIST QD 	   | - 		  | -	  |  -				|   TRN-T	   |
-| thresholdSensing	| 1            | 	1	   | NIST QD 	   | - 		  | MMSE 	  |  0				|   PPDU 	   |
+| Example      | Number of Rx | Streams/rx | Channel Model | Precoder |   Packet 	   |
+| :---         |     :---:    |   :---:    | :---: 		   |:---:     |  :---: 	       |
+| sisoOfdmAwgn_data  | 1			  | 	1	   | AWGN 	   | - 		  | 	PSDU  	   |
+| sisoSc_data  | 1			  | 	1	   | Rayleigh 	   | - 		  |  	PSDU  	   |
+| sisoOfdm_data| 1            | 	1	   | Rayleigh 	   | - 		  |  PSDU 	   |
+| sisoSc	   | 1			  | 	1	   | Rayleigh 	   | - 		  |  PPDU  	   |
+| sisoOfdm     | 1            | 	1	   | Rayleigh 	   | - 		  |   PPDU 	   |
+| mimoSc_data  | 1			  | 	2	   | Rayleigh 	   | RZF (Freq flat)	  |  	PSDU  	   |
+| mimoOfdm_data| 1            | 	2	   | Rayleigh 	   | RZF (Freq sel) 		  |   PSDU 	   |
+| mimoSc	   | 1			  | 	2	   | Rayleigh 	   | RZF (Freq flat) 		  |  	PPDU  	   |
+| mimoOfdm     | 1            | 	2	   | Rayleigh 	   | RZF (Freq sel) 		  |   PPDU 	   |
+| muMimoSc_data   | 2            | 	2	   | Rayleigh 	   | ZF (Time domain) 		  |    PSDU 	   |
+| muMimoOfdm_data   | 2            | 	2	   | Rayleigh 	   | RZF (Freq sel) 		  |    PSDU 	   |
+| muMimoOfdm   | 2            | 	2	   | Rayleigh 	   | RZF (Freq sel) 		  |    PPDU 	   |
+| pointTargetPassiveSensing   | 1            | 	1	   | NIST QD 	   | - 		  |     PPDU 	   |
+| singleHumanTarget   | 1            | 	1	   | NIST QD 	   | - 		  |    PPDU 	   |
+| pointTargetActiveSensing   | 1            | 	1	   | NIST QD 	   | - 		  |    TRN-R	   |
+| bistaticLivingRoomTRN-R| 1            | 	1	   | NIST QD 	   | - 		  |    TRN-R	   |
+| bistaticLivingRoomTRN-T| 1            | 	1	   | NIST QD 	   | - 		  |    TRN-T	   |
+| bistaticLivingRoomBeacon| 1            | 	1	   | NIST QD 	   | - 		  |    Beacon   |
+| thresholdSensing	| 1            | 	1	   | NIST QD 	   | - 	|   PPDU 	   |
 
 ## Published Work
 

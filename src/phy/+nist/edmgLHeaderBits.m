@@ -93,7 +93,6 @@ switch phyType(cfgEDMG)
         end
 
         % Training Length: bit 32-36
-%         if cfgEDMG.MsSensing == 0
 %             b3236 = de2bi(cfgEDMG.TrainingLength/4,5,'right-msb').';
 %         else % Disable
             b3236 = de2bi(0,5,'right-msb').';
