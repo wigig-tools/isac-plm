@@ -145,7 +145,7 @@ if ~isempty(sensParams) && runSensProcessing
     sensRes = getSensingPerformance(rEst, vEst, channelParams.targetInfo, aEst, phyParams.packetType);
     sensRes.rda = rda;    
     sensRes.rflSub = rflSub;
-     if strcmp(phyParams.cfgEDMG.SensingType, 'passive-ppdu')
+     if strcmp(phyParams.cfgEDMG.SensingType, 'passive-ppdu')  || ~isfield(sensInfo, "axAngle")
          angleLen = 1;
      else
          angleLen = size(sensInfo.axAngle,1);

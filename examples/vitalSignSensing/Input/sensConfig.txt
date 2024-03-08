@@ -1,0 +1,12 @@
+pri	0.026
+dopplerFftLen	256
+window	hamming
+windowLen	32
+windowOverlap	0.9
+pulsesCpi	900
+cfarGrdCellRange	0	
+cfarGrdCellVelocity	30
+cfarTrnCellRange	0
+cfarTrnCellVelocity	36
+cfarThreshold	6
+clutterRemovalMethod	none

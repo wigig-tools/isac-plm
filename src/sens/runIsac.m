@@ -113,12 +113,13 @@ else
     close all
 end
 
-outputFiles =dir(simParams.resultPathStr);
-outputFiles(1:2) = [];
- of = 2;
+if simParams.saveWs
+    outputFiles =dir(simParams.resultPathStr);
+    outputFiles(1:2) = [];
+    of = 2;
     copyfile(fullfile(outputFiles(of).folder,outputFiles(of).name), ...
         fullfile(scenarioPath,'Output', 'isac-plm-ws.mat'))
-
+end
 
 end
 

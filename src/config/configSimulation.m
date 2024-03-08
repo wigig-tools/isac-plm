@@ -81,6 +81,7 @@ params = fieldToNum(params, 'sensPlot', [0 1], 'step', 1, 'defaultValue', 0);
 params = fieldToNum(params, 'saveRdaMap', [0 1], 'step', 1, 'defaultValue', 0);
 params = fieldToNum(params, 'disableRdaAxis', [0 1], 'step', 1, 'defaultValue', 0);
 params = fieldToNum(params, 'saveCsi', [0 1], 'step', 1, 'defaultValue', 0);
+params = fieldToNum(params, 'saveWs', [0 1],  'defaultValue', 0);
 params.wsNameStr = pwd;
 end
 

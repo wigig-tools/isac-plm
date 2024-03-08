@@ -1,0 +1,4 @@
+ParameterName	ParameterValue
+sensingType	bistatic-trn
+packetType	TRN-R
+subfieldSeqLength	128
