@@ -32,6 +32,14 @@ if isfile(cfgPath)
     params = fieldToNum(params, 'windowOverlap', [0 1-eps], 'step', eps, 'defaultValue', 0.5);
     params = fieldToNum(params, 'pulsesCpi', [0 1e3], 'step', 1, 'defaultValue', 16);
     params = fieldToNum(params, 'thresholdSensing', [0 1], 'defaultValue', 0);
+    params.isCfar = any(cellfun(@(x) startsWith(x,'cfar'), fieldnames(params)));
+    params = fieldToNum(params, 'cfarGrdCellRange', [0 1e4], 'step', 1, 'defaultValue', 0);
+    params = fieldToNum(params, 'cfarGrdCellVelocity', [0 1e4], 'step', 1, 'defaultValue', 0);
+    params = fieldToNum(params, 'cfarTrnCellRange', [0 1e4], 'step', 1, 'defaultValue', 0);
+    params = fieldToNum(params, 'cfarTrnCellVelocity', [0 1e4], 'step', 1, 'defaultValue', 0);
+    params = fieldToNum(params, 'cfarThreshold', [0 1e4], 'step', eps, 'defaultValue', 0);
+    params = fieldToNum(params, 'clutterRemovalMethod', {'remove_static_component','recursive_first_order_hp', 'none'}, 'defaultValue', 'remove_static_component');
+
     if params.thresholdSensing == 1
         params = fieldToNum(params, 'adaptiveThreshold', [0 1], 'defaultValue', 0);
         params = fieldToNum(params, 'numTimeDivisions', [1 1e3], 'step', 1, 'defaultValue', 5);

@@ -40,7 +40,7 @@ rxDataBlks = [];
 varargout{1} = [];
 trn = [];
 preambleDp = [];
-if ~iscell(rxDpSigSeq) && isvector(rxDpSigSeq)
+if ~iscell(rxDpSigSeq) && isvector(rxDpSigSeq) && ~strcmp(phyParams.cfgEDMG.SensingType,'passive-beacon')
     rxDpSigSeqCell{1} = rxDpSigSeq;
     rxDpSigSeq = rxDpSigSeqCell;
 end

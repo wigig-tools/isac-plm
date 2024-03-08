@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+title: >-
+  Integrated Sensing and Communication Physical Layer Model
+  (ISAC-PLM)
+message: 'If you use this software, please cite it as below.'
+type: software
+authors:
+  - name:  NIST Communications Technology Laboratory 
+repository-code: 'https://github.com/wigig-tools/isac-plm'
+abstract: >-
+  Integrated Sensing and Communication Physical layer (PHY)
+  model of IEEE 802.11ad/ay/bf enhanced directional
+  multi-gigabit (EDMG) Wireless local access network (WLAN).

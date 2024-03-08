@@ -6,8 +6,8 @@ function saveResults(simParams, phyParams, channelParams, cfgSim, results)
 
 %   This file is available under the terms of the NIST License.
 
-fprintf('--- Save %s Results ---\n- Folder Path:\t%s\n',simParams.metricStr, simParams.resultPathStr);
-fprintf(simParams.fileID,'## --- Save %s Result ---\r\n## Folder Path:\t%s\r\n',simParams.metricStr, simParams.resultPathStr);
+% fprintf('--- Save %s Results ---\n- Folder Path:\t%s\n',simParams.metricStr, simParams.resultPathStr);
+% fprintf(simParams.fileID,'## --- Save %s Result ---\r\n## Folder Path:\t%s\r\n',simParams.metricStr, simParams.resultPathStr);
 
 if strcmp(simParams.metricStr,'ER')
     if simParams.chanFlag == 3
@@ -129,9 +129,9 @@ elseif strcmp(simParams.metricStr,'ISAC')   &&  ~isempty(results.sensing)
             fid = fopen(file, 'w');
             s = [];
             for i = 1:length(results.sensing)
-
-                s.range = results.sensing.rEst;
-                s.velocity = results.sensing.vEst;
+                s.snr = snrvect(i);
+                s.range = results.sensing(i).rEst;
+                s.velocity = results.sensing(i).vEst;
                 if isfield(results.sensing(i), 'aEst')
                     if ~isempty(results.sensing(i).aEst)
                         s.angleAz = results.sensing.aEst(:,1);
@@ -195,19 +195,21 @@ elseif strcmp(simParams.metricStr,'ISAC')   &&  ~isempty(results.sensing)
     end
 end
 
-fprintf('- Save Workspace Data File:\t%s\n',simParams.wsNameStr);
-fprintf('- Save TXT Data File:\t%s\n',simParams.fiNameStr);
+%fprintf('- Save Workspace Data File:\t%s\n',simParams.wsNameStr);
+%fprintf('- Save TXT Data File:\t%s\n',simParams.fiNameStr);
 fprintf('***** End *****\n');
 
-fprintf(simParams.fileID,'## Save Workspace Data File:\t%s\r\n',simParams.wsNameStr);
-fprintf(simParams.fileID,'## Save TXT Data File:\t%s\r\n',simParams.fiNameStr);
-fprintf(simParams.fileID,'## ***** End *****\r\n');
+% fprintf(simParams.fileID,'## Save Workspace Data File:\t%s\r\n',simParams.wsNameStr);
+% fprintf(simParams.fileID,'## Save TXT Data File:\t%s\r\n',simParams.fiNameStr);
+% fprintf(simParams.fileID,'## ***** End *****\r\n');
 fclose(simParams.fileID);
 
 % Save common variables
-wsDataPathStr = fullfile(simParams.resultPathStr,simParams.wsNameStr);
-save(wsDataPathStr, ...
-    'simParams', 'phyParams','cfgSim', 'results');
+if simParams.saveWs
+    wsDataPathStr = fullfile(simParams.resultPathStr,simParams.wsNameStr);
+    save(wsDataPathStr, ...
+        'simParams', 'phyParams','cfgSim', 'results');
+end
 
 end
 

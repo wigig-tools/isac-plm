@@ -1,5 +1,5 @@
 # Integrated Sensing and Communication Physical Layer Model (ISAC-PLM)
-> Integrated Sensing and Communication Physical layer (PHY) model of IEEE 802.11ay enhanced directional multi-gigabit (EDMG) Wireless local access network (WLAN).
+> Integrated Sensing and Communication Physical layer (PHY) model of IEEE 802.11ay/bf.
 <p align="center">
 <img src="docs/gif/isac.gif" alt="drawing">
 </p>
@@ -15,40 +15,38 @@
 * [How to Run](#how-to-run)
     * [Documentation](#documentation)
 * [Examples Provided](#examples-provided)
-* [Published Work](#published-work)
+* [References](#references)
 * [Contributing](#contributing)
-* [Authors](#authors)
+* [Contact information](#contact-information)
+* [Credits](#credits)
 * [License](#license)
 
 ## Features
-* IEEE 802.11ay Single Carrier/OFDM waveform generation.
-* IEEE 802.11ay spatial multiplexing schemes: SU-SISO, SU-MIMO, MU-MIMO.
-* Perform link-level bit error rate (BER), packet error rate (PER), data rate tests and analytical link-level spectral efficiency (SE) bound.
-* Receiver algorithms: synchronization, channel estimation, carrier frequency offset (CFO) correction.
-* Passive sensing using IEEE 802.11ay preamble.
-* Active sensing using IEEE 802.11bf multi-static PPDU.
-* Sensing signal processing algorithms: clutter removal, doppler processing, target detection, range and velocity estimation.
-* Sensing accuracy analysis in terms of Mean Squared Error (MSE) and Normalized Mean Squared Error (NMSE).
+* Support for IEEE 802.11ay including Single Carrier/OFDM waveform generation and spatial multiplexing schemes: SU-SISO, SU-MIMO, MU-MIMO.
+* Comprehensive performance analysis tools: link-level BER, PER, data rate testing, and analytical SE bounds.
+* Receiver algorithms for synchronization, channel estimation, carrier frequency offset (CFO) correction.
+* Integrated sensing capabilities using both passive and active techniques.
+* Sensing signal processing algorithms for clutter removal, 2D-CFAR, doppler processing, target detection, and range/velocity estimation.
+* Sensing accuracy evaluated using Mean Squared Error (MSE) and Normalized Mean Squared Error (NMSE).
 
 ## Installation
-The software does not require any installation procedure: simply download or clone the repository to your local folders.
+Downloading or cloning the repository is all that's required—no further installation steps needed.
+
 
 ## Requirements
-The codebase is written in MATLAB. It is currently being tested on MATLAB R2021b.
-
-It requires the [MATLAB WLAN toolbox](https://www.mathworks.com/products/wlan.html).
+* The software is developed in MATLAB and tested on MATLAB R2023b.
+* Requires the [MATLAB WLAN toolbox](https://www.mathworks.com/products/wlan.html).
 
 ## How to Run
-* Open `main.m` script and edit the variable `scenarioNameStr` with the scenario folder name `scenarioFolder` inside the folder `.\example`
+* Navigate to `main.m`, and modify the variable `scenarioNameStr` to match the name of your desired scenario folder `scenarioFolder` within `.\examples`.
 * Run `main.m` 
 
 ### Documentation
-More details about ISAC-PLM can be found in the documentation ([docs/isac-plm.pdf](docs/isac-plm.pdf)).
+Extensive documentation is provided in [docs/isac-plm.pdf](docs/isac-plm.pdf), detailing ISAC-PLM's architecture, functionalities, and usage guidelines.
 
 ## Examples Provided
-
-The following Table describes the predefined examples scenarios and the main configuration parameters. 
-These predefined scenarios are given as examples in `/src/examples/`. Each scenario contains a configuration input folder.
+A collection of predefined examples demonstrating various configurations and scenarios is available in `/src/examples/` . 
+The table below outlines the predefined examples along with their key configuration parameters:
 
 
 | Example      | Number of Rx | Streams/rx | Channel Model | Precoder |   Packet 	   |
@@ -72,32 +70,45 @@ These predefined scenarios are given as examples in `/src/examples/`. Each scena
 | bistaticLivingRoomTRN-T| 1            | 	1	   | NIST QD 	   | - 		  |    TRN-T	   |
 | bistaticLivingRoomBeacon| 1            | 	1	   | NIST QD 	   | - 		  |    Beacon   |
 | thresholdSensing	| 1            | 	1	   | NIST QD 	   | - 	|   PPDU 	   |
+| vitalSignSensing	| 1            | 	1	   | NIST Measurements 	   | - 	|   TRN-R 	   |
 
-## Published Work
+## References
 
-- S. Blandino, T. Ropitault, C. R. C. M. da Silva, A. Sahoo and N. Golmie, [IEEE 802.11bf DMG Sensing: Enabling High-Resolution mmWave Wi-Fi Sensing](https://ieeexplore.ieee.org/document/10018014), IEEE Open Journal of Vehicular Technology.
+- S. Blandino, et al, [Low Overhead DMG Sensing for Vital Signs Detection](), 2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP).
+- S. Blandino, T. Ropitault, C. R. C. M. da Silva, A. Sahoo and N. Golmie, [IEEE 802.11bf DMG Sensing: Enabling High-Resolution mmWave Wi-Fi Sensing](https://ieeexplore.ieee.org/document/10018014), 2023 IEEE Open Journal of Vehicular Technology.
+- N. Varshney et al., [Adaptive Channel-State-Information Feedback in Integrated Sensing and Communication Systems](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10232381), 2023 IEEE Internet of Things Journal.
 - J. Zhang, S. Blandino, N. Varshney, J. Wang, C. Gentile and N. Golmie, [Multi-User MIMO Enabled Virtual Reality in IEEE 802.11ay WLAN](https://ieeexplore.ieee.org/document/9771778), 2022 IEEE Wireless Communication and Networking Conference.
 - S. Blandino, T.Ropitault, A. Sahoo and N. Golmie, [Tools, Models and Dataset for IEEE 802.11ay
  CSI-based Sensing](https://ieeexplore.ieee.org/document/9771569), 2022 IEEE Wireless Communication and Networking Conference.
 
-## IEEE 802.11bf contributions
+### IEEE 802.11bf contributions
 
 - [DMG/EDMG Link Level Simulation Platform](https://mentor.ieee.org/802.11/dcn/22/11-22-0803-00-00bf-dmg-edmg-link-level-simulation-platform.pptx)
 - [Implementation of 60 GHz WLAN-SENS Physical Layer Model](https://mentor.ieee.org/802.11/dcn/22/11-22-1217-01-00bf-implementation-of-60-ghz-wlan-sens-physical-layer-model.docx)
-- [Channel Models for WLAN Sensing Systems](https://mentor.ieee.org/802.11/dcn/21/11-21-0782-05-00bf-channel-models-for-wlan-sensing-systems.docx)
-- [11bf Evaluation Methodology and Simulation Scenarios](https://mentor.ieee.org/802.11/dcn/21/11-21-0876-05-00bf-11bf-evaluation-methodology-and-simulation-scenarios.doc)
+- [TGbf Channel Models for WLAN Sensing Systems](https://mentor.ieee.org/802.11/dcn/21/11-21-0782-05-00bf-channel-models-for-wlan-sensing-systems.docx)
+- [TGbf Evaluation Methodology and Simulation Scenarios](https://mentor.ieee.org/802.11/dcn/21/11-21-0876-05-00bf-11bf-evaluation-methodology-and-simulation-scenarios.doc)
 
 ## Contributing
-Feedbacks and additions are more than welcomed! You can directly contact the [authors](#Authors) for any information.
+We welcome feedback and contributions! Please reach out to the repository administrator for collaboration or queries.
 
 
-## Authors
+## Contact information
+[Steve Blandino](https://www.nist.gov/people/steve-blandino), NIST Communications Technology Laboratory, steveblandino@nist.gov .
 
-[![NIST picture](https://github.com/usnistgov.png?size=100)](https://github.com/usnistgov)
+## Credits
+Special thanks to our contributors:
+- [Steve Blandino](https://www.nist.gov/people/steve-blandino) 
+- [Neeraj Varshney](https://www.nist.gov/people/neeraj-varshney)
+- [Jian Wang](https://www.nist.gov/people/jian-wang) 
+- Jiayi Zhang
 
-ISAC-PLM has been developed at NIST by [Steve Blandino](https://www.nist.gov/people/steve-blandino) (steve.blandino@nist.gov), [Neeraj Varshney](https://www.nist.gov/people/neeraj-varshney) (neeraj.varshney@nist.gov) and [Jian Wang](https://www.nist.gov/people/jian-wang) (jian.wang@nist.gov), Jiayi Zhang(jiayi.zhang@ieee.org).
+## Cite
+
+If you use ISAC-PLM in your reseach, please see [CITATION.cff](CITATION.cff) and cite it as follows:
+
+NIST Communications Technology Laboratory, Integrated Sensing and Communication Physical Layer Model (ISAC-PLM), [https://github.com/wigig-tools/isac-plm](https://github.com/wigig-tools/isac-plm).
 
 
 
 ## License
-Please refer to the [NIST-License.txt](license/NIST-License.txt) and [MathWorks-Limited-License.txt](license/MathWorks-Limited-License.txt) files in the `license` folder for more information.
+Please refer to the [NIST-License.md](license/NIST-License.md) and [MathWorks-Limited-License.md](license/MathWorks-Limited-License.md) files in the `license` folder for more information.
