@@ -74,7 +74,7 @@ The table below outlines the predefined examples along with their key configurat
 
 ## References
 
-- S. Blandino, et al, [Low Overhead DMG Sensing for Vital Signs Detection](), 2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP).
+- S. Blandino, et al, [Low Overhead DMG Sensing for Vital Signs Detection](https://ieeexplore.ieee.org/document/10446367), 2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP).
 - S. Blandino, T. Ropitault, C. R. C. M. da Silva, A. Sahoo and N. Golmie, [IEEE 802.11bf DMG Sensing: Enabling High-Resolution mmWave Wi-Fi Sensing](https://ieeexplore.ieee.org/document/10018014), 2023 IEEE Open Journal of Vehicular Technology.
 - N. Varshney et al., [Adaptive Channel-State-Information Feedback in Integrated Sensing and Communication Systems](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10232381), 2023 IEEE Internet of Things Journal.
 - J. Zhang, S. Blandino, N. Varshney, J. Wang, C. Gentile and N. Golmie, [Multi-User MIMO Enabled Virtual Reality in IEEE 802.11ay WLAN](https://ieeexplore.ieee.org/document/9771778), 2022 IEEE Wireless Communication and Networking Conference.
@@ -93,7 +93,7 @@ We welcome feedback and contributions! Please reach out to the repository admini
 
 
 ## Contact information
-[Steve Blandino](https://www.nist.gov/people/steve-blandino), NIST Communications Technology Laboratory, steveblandino@nist.gov .
+[Steve Blandino](https://www.nist.gov/people/steve-blandino), NIST Communications Technology Laboratory, steve.blandino@nist.gov .
 
 ## Credits
 Special thanks to our contributors:
