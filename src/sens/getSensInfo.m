@@ -1,4 +1,4 @@
-function sensInfo = getSensInfo(sensInfo,channelParams,phyParams,simParams,thInfo)
+function sensInfo = getSensInfo(sensInfo,channelParams,phyParams,simParams,sensParams,thInfo)
 %%GETSENSINFO Sens Info Structure
 %   S = GETSENSINFO(S,C,P,SIM,th complete the sensing information structure
 %   S with dependend paramaters or parameters defined in other structures
@@ -11,13 +11,13 @@ function sensInfo = getSensInfo(sensInfo,channelParams,phyParams,simParams,thInf
 if isnan(channelParams.targetInfo.range)
     sensInfo.gtRange = nan(1, simParams.nTimeSamp);
 else
-    sensInfo.gtRange = channelParams.targetInfo.range(:,1:simParams.nTimeSamp);
+    sensInfo.gtRange = channelParams.targetInfo.range;
 end
 
 if isnan(channelParams.targetInfo.velocity)
     sensInfo.gtVelocity = nan(1, simParams.nTimeSamp-1);
 else
-    sensInfo.gtVelocity = channelParams.targetInfo.velocity(:,1:simParams.nTimeSamp-1);
+    sensInfo.gtVelocity = channelParams.targetInfo.velocity;
 end
 
 if ~isempty(thInfo)
@@ -41,4 +41,13 @@ if strcmp(phyParams.cfgEDMG.SensingType, 'bistatic-trn')
         sensInfo.gtAz = nan(1, simParams.nTimeSamp);
         sensInfo.gtEl = nan(1, simParams.nTimeSamp);
     end
+end
+
+lenAx = length(sensInfo.axPri);
+lenGt = length(channelParams.targetInfo.range);
+isGtValid = ~all(isnan(channelParams.targetInfo.range));
+if lenAx~=lenGt && isGtValid
+    sensInfo.gtTimeAx = 0:sensParams.pri:sensParams.pri*(length(channelParams.targetInfo.range)-1);
+else
+    sensInfo.gtTimeAx = sensInfo.axPri; 
 end

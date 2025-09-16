@@ -71,10 +71,14 @@ The table below outlines the predefined examples along with their key configurat
 | bistaticLivingRoomBeacon| 1            | 	1	   | NIST QD 	   | - 		  |    Beacon   |
 | thresholdSensing	| 1            | 	1	   | NIST QD 	   | - 	|   PPDU 	   |
 | vitalSignSensing	| 1            | 	1	   | NIST Measurements 	   | - 	|   TRN-R 	   |
+| loss 0.6 intraStd 0us interStd 0ms| 1            | 	1	   | NIST QD  	   | - 	|   TRN-R 	   |
+| loss 0.8 intraStd 500us interStd 0ms	| 1            | 	1	   | NIST QD 	   | - 	|   TRN-R 	   |
 
 ## References
 
-- S. Blandino, et al, [Low Overhead DMG Sensing for Vital Signs Detection](), 2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP).
+- T. Ropitault, et al, [An Open-Source Framework for IEEE 802.11bf Evaluation Under Lossy and Jittery Conditions](), 2025 IEEE Military Communications Conference (MILCOM)
+- T. Ropitault, et al, [Overhead-Free People Counting in mmWave Networks Using IEEE 802.11bf Passive Sensing](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10817454), 2024 IEEE 35th Annual International Symposium on Personal, Indoor and Mobile Radio Communications (PIMRC)
+- S. Blandino, et al, [Low Overhead DMG Sensing for Vital Signs Detection](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10446367), 2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP).
 - S. Blandino, T. Ropitault, C. R. C. M. da Silva, A. Sahoo and N. Golmie, [IEEE 802.11bf DMG Sensing: Enabling High-Resolution mmWave Wi-Fi Sensing](https://ieeexplore.ieee.org/document/10018014), 2023 IEEE Open Journal of Vehicular Technology.
 - N. Varshney et al., [Adaptive Channel-State-Information Feedback in Integrated Sensing and Communication Systems](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10232381), 2023 IEEE Internet of Things Journal.
 - J. Zhang, S. Blandino, N. Varshney, J. Wang, C. Gentile and N. Golmie, [Multi-User MIMO Enabled Virtual Reality in IEEE 802.11ay WLAN](https://ieeexplore.ieee.org/document/9771778), 2022 IEEE Wireless Communication and Networking Conference.

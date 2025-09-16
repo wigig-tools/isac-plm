@@ -29,9 +29,14 @@ nCpi = floor(nPri/sensParams.pulsesCpi);
 
 [nBlks,hopLen] = getBlockStft(sensParams.pulsesCpi,sensParams.windowLen,sensParams.windowOverlap);
 DT = sensParams.pulsesCpi./(sensParams.windowLen+hopLen*(0:nBlks-1));
-axSlowTimeBlks =  sensParams.pulsesCpi*pri*((1./DT)' + (0:nCpi-1));
+% axSlowTimeBlks =  sensParams.pulsesCpi*pri*((1./DT)' + (0:nCpi-1))+ (0:nCpi-1)*0.1;
+axSlowTimeBlks =  sensParams.pulsesCpi*pri*((1./DT)') +  (0:nCpi-1)*sensParams.interBI;
 axDopFftTime = reshape(axSlowTimeBlks, 1,[]);
-axPri = (0:nPri-1)*sensParams.pri;
+
+expectedTimingBurst = 0:sensParams.pri:sensParams.pri*(sensParams.pulsesCpi-1);
+% expectedTiming = reshape((repmat(expectedTimingBurst, nCpi,1)+ (0:sensParams.interBI:sensParams.interBI*(nCpi-1))')', [],1);
+
+axPri =  reshape((repmat(expectedTimingBurst, nCpi,1)+ (0:sensParams.interBI:sensParams.interBI*(nCpi-1))')', 1,[]);
 
 rd = zeros(dopplerFftLen,fastTimeLen,nCpi*nBlks);
 rda = zeros(dopplerFftLen,fastTimeLen,nCpi*nBlks,angleLen);
@@ -96,6 +101,13 @@ else
         vEst = vEst*ones(1,nPri-1);
     else
         vEst = interp1(axDopFftTime(vId), vEst(vId), axPri(2:end), 'linear', 'extrap');
+        fs = 1/sensParams.pri;
+        fc = 3;   % Cutoff frequency (Hz) for human motion
+        [b, a] = butter(4, fc / (fs/2), 'low'); % 4th-order LPF
+        % Apply filter to estimated velocity
+        vEst = filtfilt(b, a, vEst);
+        % rEst = filtfilt(b, a, rEst);
+
     end
 end
 
@@ -110,6 +122,11 @@ else
         rEst = rEst*ones(1,nPri);
     else
         rEst = interp1(axDopFftTime(tId), rEst(tId), axPri, 'linear', 'extrap');
+        fs = 1/sensParams.pri;
+        fc = 3;  
+        [b, a] = butter(4, fc / (fs/2), 'low'); 
+        % Apply filter to estimated velocity
+        rEst = filtfilt(b, a, rEst);
     end
 end
 
