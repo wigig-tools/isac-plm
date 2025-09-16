@@ -31,6 +31,7 @@ if isfile(cfgPath)
     params = fieldToNum(params, 'windowLen', [1 params.dopplerFftLen], 'step', 1, 'defaultValue', params.dopplerFftLen);
     params = fieldToNum(params, 'windowOverlap', [0 1-eps], 'step', eps, 'defaultValue', 0.5);
     params = fieldToNum(params, 'pulsesCpi', [0 1e3], 'step', 1, 'defaultValue', 16);
+    params = fieldToNum(params, 'interBI', [eps inf], 'step', eps, 'defaultValue',params.pri*params.pulsesCpi);
     params = fieldToNum(params, 'thresholdSensing', [0 1], 'defaultValue', 0);
     params.isCfar = any(cellfun(@(x) startsWith(x,'cfar'), fieldnames(params)));
     params = fieldToNum(params, 'cfarGrdCellRange', [0 1e4], 'step', 1, 'defaultValue', 0);
@@ -39,6 +40,12 @@ if isfile(cfgPath)
     params = fieldToNum(params, 'cfarTrnCellVelocity', [0 1e4], 'step', 1, 'defaultValue', 0);
     params = fieldToNum(params, 'cfarThreshold', [0 1e4], 'step', eps, 'defaultValue', 0);
     params = fieldToNum(params, 'clutterRemovalMethod', {'remove_static_component','recursive_first_order_hp', 'none'}, 'defaultValue', 'remove_static_component');
+    params = fieldToNum(params, 'sparseCsi', [0 1], 'defaultValue', 0);
+
+    if params.sparseCsi
+        timingFile = fullfile(scenarioPath, 'Input/sensingTiming.csv');
+        params.networkTiming = readmatrix(timingFile);
+    end
 
     if params.thresholdSensing == 1
         params = fieldToNum(params, 'adaptiveThreshold', [0 1], 'defaultValue', 0);

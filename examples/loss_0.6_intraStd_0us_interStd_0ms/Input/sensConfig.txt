@@ -1,0 +1,8 @@
+pri	0.000625
+interBI	0.1
+dopplerFftLen	128
+window	blackmanharris
+windowLen	16
+windowOverlap	0.8
+pulsesCpi	64
+sparseCsi	1

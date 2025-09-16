@@ -137,10 +137,10 @@ end
 if ~isempty(sensParams) && runSensProcessing
     %% Threshold based sensing measurement and reporting
     [csiSens, thInfo] = csiReport(csiSens,phyParams,sensParams);    
-    
+    csiSens = recoverSparseCsi(csiSens,sensParams);
     %% Sensing Processing
     [rEst, vEst, aEst, rda, sensInfo, rflSub] = sensingProcessing(csiSens, phyParams, sensParams, channelParams.ftm, channelParams.codebook);
-    
+   
     %% Results
     sensRes = getSensingPerformance(rEst, vEst, channelParams.targetInfo, aEst, phyParams.packetType);
     sensRes.rda = rda;    
@@ -153,7 +153,7 @@ if ~isempty(sensParams) && runSensProcessing
     sensRes.beamSnr = snrSens(1:angleLen,:)';
     
     %% Info
-    sensInfo = getSensInfo(sensInfo,channelParams,phyParams,simParams,thInfo);
+    sensInfo = getSensInfo(sensInfo,channelParams,phyParams,simParams,sensParams,thInfo);
 
 else
     sensRes = [];

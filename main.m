@@ -11,7 +11,6 @@ clc
 
 %% Input
 scenarioNameStr = 'examples/bistaticLivingRoomTRN-T';
-% scenarioNameStr =  'singleHumanTargetMultiAntennaTRN';
 
 %% Set path
 rootFolderPath = pwd;
